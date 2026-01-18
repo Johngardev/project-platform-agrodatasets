@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Get,
@@ -6,10 +8,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -18,6 +25,23 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    // req.user viene AUTOMÁTICAMENTE desde tu JwtStrategy.validate()
+    return req.user;
+  }
+
+  // --- NUEVA RUTA SOLO PARA ADMINS (RF-003) ---
+  @UseGuards(JwtAuthGuard, RolesGuard) // 1. Verifica Token, 2. Verifica Rol
+  @Roles('ADMIN') // <--- Aquí definimos el requisito
+  @Get('admin-only')
+  getAdminData() {
+    return {
+      message: 'Bienvenido al panel de administración. Datos sensibles aquí.',
+    };
   }
 
   @Get()

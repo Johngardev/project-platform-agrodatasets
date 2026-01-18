@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Exclude } from 'class-transformer';
 import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
@@ -9,6 +11,7 @@ export class User {
   email: string;
 
   @Prop({ required: true })
+  @Exclude() // Excluye el password al transformar el objeto a JSON
   password: string; // Aquí guardaremos el HASH, no la contraseña plana
 
   @Prop({ required: true, default: 'Jhon Doe' })
