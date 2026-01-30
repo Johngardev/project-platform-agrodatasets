@@ -48,11 +48,23 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updatedUserDto: UpdateUserDto) {
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, updatedUserDto, { new: true })
+      .exec();
+
+    if (!updatedUser) {
+      return null;
+    }
+
+    const userObject = updatedUser.toObject();
+    const { password, ...userWithoutPassword } = userObject;
+
+    return userWithoutPassword as unknown as User;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
+    return deletedUser;
   }
 }

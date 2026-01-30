@@ -1,5 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Invalid email format' })
@@ -15,6 +20,12 @@ export class CreateUserDto {
 
   @IsString()
   name: string;
+
+  @IsOptional()
+  @IsString()
   role?: string;
+
+  @IsOptional()
+  @IsString()
   userType?: string;
 }

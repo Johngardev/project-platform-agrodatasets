@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
@@ -8,8 +9,9 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Request,
+  ForbiddenException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -34,9 +36,8 @@ export class UsersController {
     return req.user;
   }
 
-  // --- NUEVA RUTA SOLO PARA ADMINS (RF-003) ---
   @UseGuards(JwtAuthGuard, RolesGuard) // 1. Verifica Token, 2. Verifica Rol
-  @Roles('ADMIN') // <--- Aquí definimos el requisito
+  @Roles('ADMIN')
   @Get('admin-only')
   getAdminData() {
     return {
@@ -54,13 +55,37 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // ACTUALIZAR (Patch es para actualizaciones parciales)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
+  ) {
+    // Lógica de seguridad:
+    // Un usuario normal solo puede modificar SU propio perfil.
+    // Un ADMIN puede modificar a cualquiera.
+
+    const usuarioSolicitante = req.user;
+
+    if (
+      usuarioSolicitante.role !== 'ADMIN' &&
+      usuarioSolicitante.userId !== id
+    ) {
+      throw new ForbiddenException(
+        'No puedes modificar el perfil de otro usuario',
+      );
+    }
+
+    return this.usersService.update(id, updateUserDto);
   }
 
+  // ELIMINAR
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN') // Solo el ADMIN puede borrar usuarios de la BD
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id);
   }
 }
