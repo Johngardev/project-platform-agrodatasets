@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Dataset, DatasetDocument } from './schemas/dataset.schema';
 import { Image, ImageDocument } from './schemas/image.schema';
 import { CreateImageDto } from './dto/create-image.dto';
@@ -55,12 +55,37 @@ export class DatasetsService {
     return savedImage;
   }
 
-  findAll() {
-    return `This action returns all datasets`;
+  findAll(): Promise<Dataset[]> {
+    return this.datasetModel
+      .find()
+      .populate('uploaded_by', 'username email') // Poblamos solo campos específicos
+      .exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} dataset`;
+  async findOne(id: string) {
+    // Verificamos si el ID tiene formato válido de Mongo para evitar crashes
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('ID de dataset inválido');
+    }
+
+    const dataset = await this.datasetModel
+      .findById(id)
+      .populate('uploaded_by', 'name email')
+      .exec();
+
+    if (!dataset) {
+      throw new NotFoundException(`Dataset #${id} no encontrado`);
+    }
+
+    // Convertimos el string 'id' a un ObjectId real para que coincida con la DB
+    const images = await this.imageModel.find({
+      dataset_id: id,
+    } as any);
+
+    return {
+      dataset,
+      images,
+    };
   }
 
   update(id: number, updateDatasetDto: UpdateDatasetDto) {

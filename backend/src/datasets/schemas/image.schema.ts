@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Dataset } from './dataset.schema';
@@ -59,7 +61,12 @@ class ImageMetadata {
 @Schema({ timestamps: true })
 export class Image {
   // Relación con el Dataset padre (Indexado para búsquedas rápidas)
-  @Prop({ type: Types.ObjectId, ref: 'Dataset', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Dataset',
+    required: true,
+    index: true,
+  })
   dataset_id: Dataset;
 
   @Prop({ required: true })

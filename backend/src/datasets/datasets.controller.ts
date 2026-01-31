@@ -48,7 +48,7 @@ export class DatasetsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.datasetsService.findOne(+id);
+    return this.datasetsService.findOne(id);
   }
 
   @Patch(':id')
