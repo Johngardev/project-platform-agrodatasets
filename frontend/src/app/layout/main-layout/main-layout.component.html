@@ -1,1 +1,10 @@
-<p>main-layout works!</p>
+<div
+	class="flex h-screen w-full bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+	<app-sidebar class="shrink-0" />
+
+	<main class="flex-1 flex flex-col h-full overflow-y-auto relative">
+		<app-header />
+
+		<router-outlet />
+	</main>
+</div>

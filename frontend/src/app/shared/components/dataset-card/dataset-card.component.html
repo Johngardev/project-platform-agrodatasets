@@ -1,0 +1,37 @@
+<div
+	class="group flex flex-col rounded-xl border border-border-dark bg-secondary-dark overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(101,163,13,0.15)]">
+
+	<div class="relative h-48 w-full overflow-hidden">
+		<div class="absolute inset-0 bg-gradient-to-t from-secondary-dark to-transparent z-10 opacity-80"></div>
+
+		<div class="h-full w-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+			[style.backgroundImage]="'url(' + imageUrl + ')'"></div>
+
+		<div class="absolute top-3 right-3 z-20">
+			<span
+				class="px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/10">{{
+				year }}</span>
+		</div>
+	</div>
+
+	<div class="flex flex-col gap-4 p-5">
+		<div>
+			<h3 class="text-white text-lg font-bold font-display group-hover:text-primary transition-colors mb-1">{{ title }}
+			</h3>
+			<p class="text-text-muted text-xs">Uploaded by {{ uploader }} • {{ date }}</p>
+		</div>
+
+		<div class="flex items-center gap-3 text-sm">
+			<div
+				class="flex items-center gap-1.5 text-gray-300 bg-background-dark/50 border border-border-dark px-2 py-1 rounded-lg">
+				<span class="material-symbols-outlined text-[16px] text-primary">image</span>
+				<span class="font-mono text-xs font-bold">{{ imageCount }}</span>
+			</div>
+		</div>
+
+		<button
+			class="mt-2 flex w-full items-center justify-center rounded-lg bg-primary hover:bg-primary-hover py-2.5 text-white text-sm font-bold transition-colors">
+			Explore Dataset
+		</button>
+	</div>
+</div>

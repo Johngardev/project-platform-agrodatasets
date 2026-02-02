@@ -1,0 +1,9 @@
+<div
+	class="flex min-w-[200px] flex-1 flex-col gap-1 rounded-xl p-6 bg-secondary-dark border border-border-dark shadow-sm">
+	<div class="flex items-center justify-between">
+		<p class="text-text-muted text-sm font-medium font-display">{{ title }}</p>
+		<span class="material-symbols-outlined" [ngClass]="iconColorClass">{{ icon }}</span>
+	</div>
+	<p class="text-white text-3xl font-bold mt-2 font-display">{{ value }}</p>
+	<p class="text-xs" [ngClass]="trendColorClass">{{ trend }}</p>
+</div>

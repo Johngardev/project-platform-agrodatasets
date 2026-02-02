@@ -1,0 +1,28 @@
+<div class="p-6 md:p-8 flex flex-col gap-10 max-w-[1400px] mx-auto w-full">
+
+	<section class="flex flex-wrap gap-4">
+		<app-stat-card title="Total Uploads" value="24" icon="cloud_upload" trend="+2 this week"
+			trendColorClass="text-primary" />
+		<app-stat-card title="Pending Approval" value="3" icon="pending" iconColorClass="text-yellow-500"
+			trend="Awaiting review" />
+		<app-stat-card title="Approved Datasets" value="21" icon="check_circle" trend="Ready for training" />
+	</section>
+
+	<section class="flex flex-col gap-4">
+		<h2 class="text-white text-xl font-bold">My Contributions</h2>
+	</section>
+
+	<section class="flex flex-col gap-6">
+		<h2 class="text-white text-xl font-bold">Explore Global Datasets</h2>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			@for (ds of datasets; track ds._id) {
+			<app-dataset-card [title]="ds.name" [uploader]="'AgroUser'" [date]="'2026-02-01'" [year]="'2026'"
+				[imageCount]="ds.image_count + ' imgs'" [imageUrl]="'/assets/avocado-placeholder.jpg'" />
+			} @empty {
+			<p class="text-text-secondary">Cargando datasets...</p>
+			}
+		</div>
+	</section>
+
+</div>

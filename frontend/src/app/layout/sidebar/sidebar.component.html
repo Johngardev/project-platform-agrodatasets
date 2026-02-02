@@ -1,1 +1,37 @@
-<p>sidebar works!</p>
+<aside
+	class="w-[280px] hidden md:flex flex-col border-r border-border-dark bg-secondary-dark p-4 justify-between h-full">
+
+	<div class="flex flex-col gap-8">
+		<div class="flex items-center gap-3 px-2">
+			<div class="flex items-center justify-center rounded-lg bg-primary/20 p-2 text-primary">
+				<span class="material-symbols-outlined text-3xl">nutrition</span>
+			</div>
+			<div class="flex flex-col">
+				<h1 class="text-white text-lg font-bold font-display leading-tight">Hass Data</h1>
+				<p class="text-text-muted text-xs font-normal">Curation Platform</p>
+			</div>
+		</div>
+
+		<nav class="flex flex-col gap-2">
+			<a
+				class="flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 transition-colors cursor-pointer">
+				<span class="material-symbols-outlined">dashboard</span>
+				<p class="text-sm font-medium leading-normal font-display">Dashboard</p>
+			</a>
+
+			<a
+				class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white transition-colors cursor-pointer">
+				<span class="material-symbols-outlined">upload_file</span>
+				<p class="text-sm font-medium leading-normal font-display">Upload Data</p>
+			</a>
+		</nav>
+	</div>
+
+	<div class="flex flex-col gap-4">
+		<button
+			class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg h-12 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-lg shadow-primary/20">
+			<span class="material-symbols-outlined text-[20px]">add</span>
+			<span>New Upload</span>
+		</button>
+	</div>
+</aside>
