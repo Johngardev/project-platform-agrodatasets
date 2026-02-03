@@ -30,6 +30,10 @@ export class DatasetService {
 
   constructor() { }
 
+  createDataset(data: { name: string; crop_type: string; description: string }): Observable<Dataset>{
+    return this._http.post<Dataset>(this.apiUrl, data);
+  }
+
   /**
    * Obtiene todos los datasets (Para el Dashboard)
    */

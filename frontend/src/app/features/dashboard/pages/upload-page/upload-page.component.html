@@ -1,0 +1,170 @@
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-8 md:px-10 md:py-12 flex flex-col gap-8 font-body">
+
+	<nav class="flex flex-wrap gap-2 text-sm font-medium">
+		<a routerLink="/" class="text-text-secondary-dark hover:text-primary transition-colors">Home</a>
+		<span class="text-text-secondary-dark">/</span>
+		<span class="text-white font-semibold">Ingest</span>
+	</nav>
+
+	<div class="flex flex-col gap-2">
+		<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white font-display">Ingest Avocado Dataset</h1>
+		<p class="text-text-secondary-dark text-base max-w-2xl">
+			Upload your annotated Hass avocado image datasets here. Supported format: .ZIP containing images and JSON
+			annotations.
+		</p>
+	</div>
+
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+		<div class="lg:col-span-2 flex flex-col gap-6">
+
+			@if (!file()) {
+			<div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+				[class.border-primary]="isDragging" [class.bg-surface-dark-highlight]="isDragging"
+				class="group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border-dark bg-surface-dark hover:bg-[#1a2333] hover:border-primary transition-all duration-300 px-6 py-16 cursor-pointer">
+
+				<div
+					class="mb-4 rounded-full bg-primary/10 p-4 text-primary group-hover:scale-110 transition-transform duration-300">
+					<span class="material-symbols-outlined text-4xl">cloud_upload</span>
+				</div>
+
+				<p class="text-lg font-bold text-white text-center mb-1">Drag & drop your .zip file here</p>
+				<p class="text-sm text-text-secondary-dark text-center mb-6">or click to browse from your computer</p>
+
+				<button (click)="fileInput.click()"
+					class="bg-primary hover:bg-primary-hover text-white font-bold py-2.5 px-6 rounded-lg transition-colors text-sm tracking-wide shadow-lg shadow-primary/20">
+					Select File
+				</button>
+
+				<input #fileInput type="file" accept=".zip" class="hidden" (change)="onFileSelected($event)" />
+			</div>
+			} @else {
+			<div
+				class="rounded-xl bg-surface-dark p-6 shadow-lg border border-border-dark flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
+				<div class="flex items-start justify-between gap-4">
+					<div class="flex items-center gap-4">
+						<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+							<span class="material-symbols-outlined">folder_zip</span>
+						</div>
+						<div>
+							<h3 class="text-base font-bold text-white">{{ file()?.name }}</h3>
+							<p class="text-sm text-text-secondary-dark">{{ fileSize }} • {{ timeRemaining }}</p>
+						</div>
+					</div>
+					<button (click)="cancelUpload()" class="text-text-secondary-dark hover:text-red-500 transition-colors p-2">
+						<span class="material-symbols-outlined">close</span>
+					</button>
+				</div>
+
+				<div class="w-full bg-background-dark rounded-full h-2.5 overflow-hidden border border-border-dark">
+					<div class="bg-primary h-2.5 rounded-full relative overflow-hidden transition-all duration-300"
+						[style.width.%]="progress()">
+						<div class="absolute inset-0 bg-white/30 w-full h-full -translate-x-full animate-[shimmer_1.5s_infinite]">
+						</div>
+					</div>
+				</div>
+			</div>
+			}
+
+			<div class="flex gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+				<span class="material-symbols-outlined text-primary shrink-0">info</span>
+				<div class="flex flex-col gap-1">
+					<h4 class="text-sm font-bold text-white">Processing Info</h4>
+					<p class="text-sm text-text-secondary-dark leading-relaxed">
+						Upon successful validation, your dataset will enter a 'PENDING' state while background processing completes.
+						You will receive a notification when it is ready for curation.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="lg:col-span-1 flex flex-col gap-6">
+
+			<div class="rounded-xl bg-surface-dark border border-border-dark overflow-hidden shadow-lg flex flex-col h-full">
+
+				<div class="px-5 py-4 border-b border-border-dark bg-[#1e293b]/50">
+					<h3 class="font-bold text-white flex items-center gap-2">
+						<span class="material-symbols-outlined text-xl text-primary">fact_check</span>
+						Validation Checklist
+					</h3>
+				</div>
+
+				<div class="p-5 flex flex-col gap-6 flex-1">
+
+					<div class="flex gap-4">
+						<div class="flex flex-col items-center">
+							<div class="size-6 rounded-full flex items-center justify-center transition-colors"
+								[ngClass]="getStepClass(1)">
+								<span class="material-symbols-outlined text-sm font-bold">{{ getStepIcon(1) }}</span>
+							</div>
+							<div class="w-0.5 h-full bg-border-dark mt-2 min-h-[24px]"></div>
+						</div>
+						<div class="pb-2">
+							<h4 class="text-sm font-bold text-white">File Integrity Check</h4>
+							<p class="text-xs mt-1" [ngClass]="getStepTextClass(1)">
+								{{ getStepStatusText(1) }}
+							</p>
+						</div>
+					</div>
+
+					<div class="flex gap-4">
+						<div class="flex flex-col items-center">
+							<div class="size-6 rounded-full flex items-center justify-center transition-colors"
+								[ngClass]="getStepClass(2)">
+								<span class="material-symbols-outlined text-sm font-bold">{{ getStepIcon(2) }}</span>
+							</div>
+							<div class="w-0.5 h-full bg-border-dark mt-2 min-h-[24px]"></div>
+						</div>
+						<div class="pb-2">
+							<h4 class="text-sm font-bold text-white">Decompression</h4>
+							<p class="text-xs mt-1" [ngClass]="getStepTextClass(2)">{{ getStepStatusText(2) }}</p>
+						</div>
+					</div>
+
+					<div class="flex gap-4">
+						<div class="flex flex-col items-center">
+							<div class="size-6 rounded-full flex items-center justify-center transition-colors"
+								[ngClass]="getStepClass(3)">
+								<span class="material-symbols-outlined text-sm font-bold" [class.animate-spin]="currentStep() === 3">{{
+									getStepIcon(3) }}</span>
+							</div>
+						</div>
+						<div class="pb-2">
+							<h4 class="text-sm font-bold" [class.text-primary]="currentStep() === 3"
+								[class.text-white]="currentStep() !== 3">Image Format Verification</h4>
+							<p class="text-xs mt-1" [ngClass]="getStepTextClass(3)">{{ getStepStatusText(3) }}</p>
+						</div>
+					</div>
+
+				</div>
+
+				<div
+					class="bg-black/80 p-4 font-mono text-xs border-t border-border-dark h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent">
+					@for (log of logs(); track log) {
+					<div class="mb-1" [class.text-primary]="log.includes('>')"
+						[class.text-text-secondary-dark]="!log.includes('>')">
+						<span class="opacity-50 mr-2">{{ log | date:'HH:mm:ss' }}</span>
+						<span [innerHTML]="log"></span>
+					</div>
+					}
+					@if (logs().length === 0) {
+					<span class="text-text-secondary-dark opacity-50 italic">Waiting for upload...</span>
+					}
+				</div>
+
+			</div>
+
+			<div class="flex justify-between items-center mt-2">
+				<button (click)="cancelUpload()" routerLink="/"
+					class="text-sm font-medium text-text-secondary-dark hover:text-white transition-colors">
+					Cancel Upload
+				</button>
+				<button [disabled]="currentStep() !== 4" routerLink="/"
+					class="bg-primary/20 text-primary font-bold py-2.5 px-6 rounded-lg text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary hover:text-white transition-all">
+					Go to Dashboard
+				</button>
+			</div>
+
+		</div>
+	</div>
+</main>
