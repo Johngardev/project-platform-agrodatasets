@@ -10,6 +10,10 @@ export const routes: Routes = [
 				loadComponent: () => import('./features/dashboard/pages/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent)
 			},
 			{
+				path: 'dataset/:id',
+				loadComponent: () => import('./features/dashboard/pages/dataset-detail/dataset-detail.component').then(m => m.DatasetDetailComponent)
+			},
+			{
 				path: 'dashboard',
 				redirectTo: '',
 				pathMatch: 'full'

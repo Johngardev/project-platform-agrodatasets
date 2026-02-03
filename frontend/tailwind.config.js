@@ -12,7 +12,8 @@ module.exports = {
         "background-light": "#f8fafc",
         "background-dark": "#0f172a",
 
-        "secondary-dark": "#1e293b",   // Slate-800 (Sidebar, Tarjetas)
+        "surface-dark": "#1e293b",   // Slate-800 (Sidebar, Tarjetas)
+
         "border-dark": "#334155",      // Slate-700 (Bordes sutiles)
         "text-muted": "#94a3b8",
       },
