@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
@@ -7,6 +9,8 @@ import { Model, Types } from 'mongoose';
 import { Dataset, DatasetDocument } from './schemas/dataset.schema';
 import { Image, ImageDocument } from './schemas/image.schema';
 import { CreateImageDto } from './dto/create-image.dto';
+import path from 'path/win32';
+import AdmZip from 'adm-zip';
 
 @Injectable()
 export class DatasetsService {
@@ -86,6 +90,45 @@ export class DatasetsService {
       dataset,
       images,
     };
+  }
+
+  processDataset(file: Express.Multer.File) {
+    console.log('📂 Service procesando archivo:', file.path);
+
+    // 1. Definir dónde vamos a descomprimir
+    // Creamos una carpeta con el mismo nombre del archivo (sin .zip)
+    const extractPath = path.join(
+      path.dirname(file.path),
+      'extracted',
+      file.filename.replace(/\.[^/.]+$/, ''),
+    );
+
+    // 2. Intentar descomprimir
+    try {
+      const zip = new AdmZip(file.path);
+
+      // true = sobrescribir si ya existe
+      zip.extractAllTo(extractPath, true);
+
+      console.log(`Archivo descomprimido en: ${extractPath}`);
+
+      // 3. Ver qué archivos hay dentro (opcional, para verificar)
+      const zipEntries = zip.getEntries();
+      const fileNames = zipEntries.map((entry) => entry.entryName);
+
+      return {
+        message: 'Dataset subido y descomprimido exitosamente',
+        originalName: file.originalname,
+        extractedLocation: extractPath,
+        filesFound: fileNames, // Devolvemos la lista de archivos encontrados
+      };
+    } catch (error) {
+      console.error('Error al descomprimir:', error);
+      return {
+        message: 'Error al procesar el archivo ZIP',
+        error: error.message,
+      };
+    }
   }
 
   update(id: number, updateDatasetDto: UpdateDatasetDto) {
