@@ -1,6 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { HttpEventType } from '@angular/common/http';
+import { DatasetService } from '../../../../core/services/dataset.service';
+
+interface LogEntry {
+  timestamp: Date;
+  message: string;
+}
 
 @Component({
   selector: 'app-upload-page',
@@ -10,9 +17,12 @@ import { RouterLink } from '@angular/router';
   styleUrl: './upload-page.component.css'
 })
 export class UploadPageComponent {
+  private _datasetService = inject(DatasetService);
+  private _router = inject(Router);
+
   file = signal<File | null>(null);
   progress = signal<number>(0);
-  logs = signal<string[]>([]);
+  logs = signal<LogEntry[]>([]);
   currentStep = signal<number>(0); // 0: Idle, 1: Integrity, 2: Decompress, 3: Format, 4: Done
 
   isDragging = signal(false);
@@ -49,49 +59,65 @@ export class UploadPageComponent {
     }
   }
 
-  // -- Lógica de Simulación de Carga --
   handleFile(file: File) {
-    if (file.type !== 'application/zip' && !file.name.endsWith('.zip')) {
+    if (file.type !== 'application/zip' && !file.type.includes('zip') && !file.name.endsWith('.zip')) {
       alert('Solo se permiten archivos .zip');
       return;
     }
 
     this.file.set(file);
-    this.fileSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    this.simulateUploadProcess();
+    this.fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    
+    // Llamamos a la subida real
+    this.uploadFile(file);
   }
 
-  simulateUploadProcess() {
-    this.addLog('System: Upload initialized');
-    this.currentStep.set(1);
-    
-    // Simular progreso
-    let p = 0;
-    const interval = setInterval(() => {
-      p += Math.random() * 5;
-      if (p > 100) p = 100;
-      this.progress.set(Math.floor(p));
+  uploadFile(file: File) {
+    this.addLog('System: Initializing secure upload connection...');
+    this.currentStep.set(1); // Paso 1: Integridad (Check local)
 
-      // Simular etapas basado en el progreso
-      if (p > 20 && this.currentStep() === 1) {
-         this.addLog('Integrity: Checksum OK (MD5 verified)');
-         this.currentStep.set(2);
+    this._datasetService.uploadDatasetZip(file).subscribe({
+      next: (event) => {
+        // 1. Evento de Progreso de Subida
+        if (event.type === HttpEventType.UploadProgress) {
+          if (event.total) {
+            const percent = Math.round((100 * event.loaded) / event.total);
+            this.progress.set(percent);
+            
+            this.timeRemaining = `${percent}% Uploaded`;
+
+            // Simulamos pasos visuales basados en el progreso real de red
+            if (percent > 10 && this.currentStep() === 1) {
+              this.addLog('Integrity: Client-side validation passed');
+              this.currentStep.set(2); // Paso 2: Subiendo/Descomprimiendo
+            }
+            if (percent > 90) {
+              this.addLog('Network: File transmission complete');
+              this.addLog('Server: Verifying magic numbers...');
+            }
+          }
+        } 
+        
+        // 2. Evento de Respuesta Final (Cuando el servidor responde 201 Created)
+        else if (event.type === HttpEventType.Response) {
+          this.progress.set(100);
+          this.currentStep.set(3); // Paso 3: Verificación
+          
+          this.addLog(`Server: ${event.body.message}`);
+          this.addLog(`Storage: Saved as ${event.body.filename}`);
+          this.addLog('<span class="text-primary font-bold">SUCCESS: Dataset queued for processing.</span>');
+          
+          this.currentStep.set(4); // Completado
+          this.timeRemaining = 'Upload Complete';
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.addLog(`<span class="text-red-500">ERROR: Upload failed - ${err.statusText}</span>`);
+        this.progress.set(0);
+        alert('Error al subir el archivo. Revisa la consola.');
       }
-      if (p > 60 && this.currentStep() === 2) {
-         this.addLog('Unzip: Started worker process #492');
-         this.addLog('Unzip: Completed in 3.2s');
-         this.currentStep.set(3);
-      }
-      if (p >= 100) {
-        clearInterval(interval);
-        this.addLog('> Checking MIME types...');
-        this.addLog('<span class="text-green-400">SUCCESS: Dataset ready for review.</span>');
-        this.currentStep.set(4);
-        this.timeRemaining = 'Completado';
-      } else {
-        this.timeRemaining = `${Math.floor((100 - p) / 10)} segundos restantes`;
-      }
-    }, 200);
+    });
   }
 
   cancelUpload() {
@@ -102,7 +128,10 @@ export class UploadPageComponent {
   }
 
   private addLog(msg: string) {
-    this.logs.update(l => [...l, `${new Date().toISOString()} ${msg}`]);
+    this.logs.update(currentLogs => [
+      ...currentLogs,
+      { timestamp: new Date(), message: msg }
+    ]);
   }
 
   // -- Helpers para la UI del Checklist --

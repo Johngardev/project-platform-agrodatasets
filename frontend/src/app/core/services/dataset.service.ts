@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs/internal/Observable';
 
@@ -57,5 +57,20 @@ export class DatasetService {
     formData.append('metadata', JSON.stringify(metadata));
 
     return this._http.post(`${this.apiUrl}/${datasetId}/images`, formData);
+  }
+
+  /**
+   * Subir un archivo .zip a un dataset existente
+   */
+  uploadDatasetZip(file: File): Observable<HttpEvent<any>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const req = new HttpRequest('POST', `${this.apiUrl}/upload`, formData, {
+      reportProgress: true,
+      responseType: 'json'
+    });
+
+    return this._http.request(req);
   }
 }

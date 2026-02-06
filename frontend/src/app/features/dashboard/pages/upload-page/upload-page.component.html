@@ -140,11 +140,15 @@
 
 				<div
 					class="bg-black/80 p-4 font-mono text-xs border-t border-border-dark h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent">
-					@for (log of logs(); track log) {
-					<div class="mb-1" [class.text-primary]="log.includes('>')"
-						[class.text-text-secondary-dark]="!log.includes('>')">
-						<span class="opacity-50 mr-2">{{ log | date:'HH:mm:ss' }}</span>
-						<span [innerHTML]="log"></span>
+					@for (log of logs(); track log.timestamp) {
+					<div class="flex gap-2">
+						<span class="opacity-50 text-xs shrink-0 pt-0.5">
+							[{{ log.timestamp | date:'HH:mm:ss' }}]
+						</span>
+
+						<span [class.text-primary]="log.message.includes('>')" [class.text-red-400]="log.message.includes('ERROR')"
+							[innerHTML]="log.message">
+						</span>
 					</div>
 					}
 					@if (logs().length === 0) {
