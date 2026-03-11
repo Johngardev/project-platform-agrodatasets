@@ -59,8 +59,12 @@ export class LoginComponent {
       this._http.post(`${this.apiUrl}/login`, loginPayload).subscribe({
         next: (res: any) => {
           console.log('Login successful:', res);
-          localStorage.setItem('token', res.token);
-          this._router.navigate(['/dashboard']);
+          // 1. Guardamos el token y los datos que nos envía tu backend
+          localStorage.setItem('access_token', res.access_token);
+          localStorage.setItem('user_data', JSON.stringify(res.user));
+
+          // 2. Redirigimos a la ruta raíz (que carga el DashboardHomeComponent según tu enrutador)
+          this._router.navigate(['/']);
         },
         error: (err) => {
           console.error('Login failed:', err);
@@ -74,7 +78,7 @@ export class LoginComponent {
         password: formValues.password,
       };
 
-      this._http.post(`${this.apiUrl}/register`, registerPayload).subscribe({
+      this._http.post(`http://localhost:3000/users`, registerPayload).subscribe({
         next: (res: any) => {
           console.log('Registro exitoso:', res);
           alert('Cuenta creada con éxito. Ahora puedes iniciar sesión.');
