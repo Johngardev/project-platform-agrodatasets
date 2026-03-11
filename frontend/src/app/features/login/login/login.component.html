@@ -56,65 +56,63 @@
           </div>
 
           <div class="mt-8 fade-in">
-            <form action="#" class="space-y-6">
-
+            <form [formGroup]="authForm" (ngSubmit)="onSubmit()" class="space-y-6">
+              
               @if (!isLoginMode) {
-              <div>
-                <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2" for="name">Full
-                  Name</label>
-                <div class="relative">
-                  <input
-                    class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow"
-                    id="name" type="text" placeholder="John Doe" />
+                <div>
+                  <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2" for="name">Full Name</label>
+                  <div class="relative">
+                    <input formControlName="name" class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow" id="name" type="text" placeholder="John Doe"/>
+                  </div>
+                  @if (authForm.get('name')?.touched && authForm.get('name')?.invalid) {
+                    <span class="text-xs text-red-500 mt-1">Name is required</span>
+                  }
                 </div>
-              </div>
               }
 
               <div>
-                <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2" for="email">Work
-                  Email</label>
+                <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2" for="email">Work Email</label>
                 <div class="relative">
-                  <input autocomplete="email"
-                    class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow"
-                    id="email" type="email" placeholder="name@company.com" />
+                  <input formControlName="email" autocomplete="email" class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow" id="email" type="email" placeholder="name@company.com"/>
                   <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <span class="material-symbols-outlined text-gray-400 text-xl">mail</span>
                   </div>
                 </div>
+                @if (authForm.get('email')?.touched && authForm.get('email')?.invalid) {
+                  <span class="text-xs text-red-500 mt-1">Please enter a valid email</span>
+                }
               </div>
 
               <div>
-                <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2"
-                  for="password">Password</label>
+                <label class="block text-sm font-medium leading-6 text-slate-900 dark:text-white mb-2" for="password">Password</label>
                 <div class="relative">
-                  <input
-                    class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow"
-                    id="password" type="password" placeholder="Enter your password" />
+                  <input formControlName="password" class="block w-full rounded-lg border-0 bg-white dark:bg-secondary-dark py-3.5 text-slate-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 pl-4 transition-shadow" id="password" type="password" placeholder="Enter your password"/>
                   <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <span class="material-symbols-outlined text-gray-400 text-xl">lock</span>
                   </div>
                 </div>
+                @if (authForm.get('password')?.touched && authForm.get('password')?.invalid) {
+                  <span class="text-xs text-red-500 mt-1">Password must be at least 6 characters</span>
+                }
               </div>
 
               @if (isLoginMode) {
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-                    id="remember-me" type="checkbox" />
-                  <label class="ml-2 block text-sm text-gray-900 dark:text-text-muted cursor-pointer"
-                    for="remember-me">Remember me</label>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" id="remember-me" type="checkbox"/>
+                    <label class="ml-2 block text-sm text-gray-900 dark:text-text-muted cursor-pointer" for="remember-me">Remember me</label>
+                  </div>
+                  <div class="text-sm">
+                    <a class="font-medium text-primary hover:text-primary-hover transition-colors" href="#">Forgot password?</a>
+                  </div>
                 </div>
-                <div class="text-sm">
-                  <a class="font-medium text-primary hover:text-primary-hover transition-colors" href="#">Forgot
-                    password?</a>
-                </div>
-              </div>
               }
 
               <div>
-                <button
-                  class="flex w-full justify-center rounded-lg bg-primary px-3 py-3.5 text-sm font-bold leading-6 text-white shadow-sm hover:bg-primary-hover transition-all"
-                  type="submit">
+                <button 
+                  [disabled]="authForm.invalid"
+                  [ngClass]="authForm.invalid ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary-hover'"
+                  class="flex w-full justify-center rounded-lg bg-primary px-3 py-3.5 text-sm font-bold leading-6 text-white shadow-sm transition-all" type="submit">
                   {{ isLoginMode ? 'Sign In to Dashboard' : 'Create Account' }}
                 </button>
               </div>
