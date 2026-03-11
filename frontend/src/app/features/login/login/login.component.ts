@@ -1,7 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
-import { Form, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  Form,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
@@ -63,8 +69,12 @@ export class LoginComponent {
           localStorage.setItem('access_token', res.access_token);
           localStorage.setItem('user_data', JSON.stringify(res.user));
 
-          // 2. Redirigimos a la ruta raíz (que carga el DashboardHomeComponent según tu enrutador)
-          this._router.navigate(['/']);
+          // 2. Redirigimos a la ruta según el rol del usuario
+          if (res.user.role === 'admin') {
+            this._router.navigate(['/admin']);
+          } else {
+            this._router.navigate(['/']);
+          }
         },
         error: (err) => {
           console.error('Login failed:', err);
@@ -78,17 +88,19 @@ export class LoginComponent {
         password: formValues.password,
       };
 
-      this._http.post(`http://localhost:3000/users`, registerPayload).subscribe({
-        next: (res: any) => {
-          console.log('Registro exitoso:', res);
-          alert('Cuenta creada con éxito. Ahora puedes iniciar sesión.');
-          this.toggleMode(true); // Cambiamos a la vista de login
-        },
-        error: (err) => {
-          console.error('Error en Registro:', err);
-          alert('Hubo un error al crear la cuenta');
-        },
-      });
+      this._http
+        .post(`http://localhost:3000/users`, registerPayload)
+        .subscribe({
+          next: (res: any) => {
+            console.log('Registro exitoso:', res);
+            alert('Cuenta creada con éxito. Ahora puedes iniciar sesión.');
+            this.toggleMode(true); // Cambiamos a la vista de login
+          },
+          error: (err) => {
+            console.error('Error en Registro:', err);
+            alert('Hubo un error al crear la cuenta');
+          },
+        });
     }
   }
 }

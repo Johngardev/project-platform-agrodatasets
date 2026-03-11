@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
 	{
@@ -11,6 +12,11 @@ export const routes: Routes = [
 				path: '',
 				loadComponent: () => import('./features/dashboard/pages/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent)
 			},
+      {
+        path: 'admin',
+        canActivate: [adminGuard], // Solo accesible para admins
+        loadComponent: () => import('./features/dashboard/pages/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
 			{
 				path: 'dataset/:id',
 				loadComponent: () => import('./features/dashboard/pages/dataset-detail/dataset-detail.component').then(m => m.DatasetDetailComponent)
