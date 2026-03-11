@@ -1,46 +1,79 @@
-<aside
-	class="w-[280px] hidden md:flex flex-col border-r border-border-dark bg-secondary-dark p-4 justify-between h-full">
+<aside class="w-[280px] hidden md:flex flex-col border-r border-border-dark bg-secondary-dark p-4 justify-between h-full overflow-y-auto">
+    <div class="flex flex-col gap-8">
+        <nav class="flex flex-col gap-2 mt-4">
 
-	<div class="flex flex-col gap-8">
-		<div class="flex items-center gap-3 px-2 cursor-pointer" routerLink="/">
-			
-		</div>
+            @if (userRole === 'admin') {
+                <p class="text-xs font-bold uppercase tracking-wider text-primary/50 mb-2 px-3">Management</p>
+                
+                <a routerLink="/admin" routerLinkActive="bg-primary/10 text-primary border-primary/20" [routerLinkActiveOptions]="{exact: true}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <p class="text-sm font-medium leading-normal font-display">Admin Dashboard</p>
+                </a>
+                
+                <a routerLink="/admin/pending" routerLinkActive="bg-primary/10 text-primary border-primary/20"
+                   class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">pending_actions</span>
+                    <p class="text-sm font-medium leading-normal font-display">Pending Curation</p>
+                </a>
 
-		<nav class="flex flex-col gap-2">
+                <a routerLink="/admin/researchers" routerLinkActive="bg-primary/10 text-primary border-primary/20"
+                   class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">group</span>
+                    <p class="text-sm font-medium leading-normal font-display">Researchers</p>
+                </a>
+            } 
+            
+            @else {
+                <a routerLink="/" routerLinkActive="bg-primary/10 text-primary border-primary/20" [routerLinkActiveOptions]="{exact: true}"
+                    class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <p class="text-sm font-medium leading-normal font-display">Dashboard</p>
+                </a>
 
-			<a routerLink="/" routerLinkActive="bg-primary/10 text-primary border-primary/20"
-				[routerLinkActiveOptions]="{exact: true}"
-				class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
-				<span class="material-symbols-outlined">dashboard</span>
-				<p class="text-sm font-medium leading-normal font-display">Dashboard</p>
-			</a>
+                <a routerLink="/upload" routerLinkActive="bg-primary/10 text-primary border-primary/20"
+                    class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">upload_file</span>
+                    <p class="text-sm font-medium leading-normal font-display">Upload Data</p>
+                </a>
 
-			<a routerLink="/upload" routerLinkActive="bg-primary/10 text-primary border-primary/20"
-				class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
-				<span class="material-symbols-outlined">upload_file</span>
-				<p class="text-sm font-medium leading-normal font-display">Upload Data</p>
-			</a>
+                <a routerLink="/library" routerLinkActive="bg-primary/10 text-primary border-primary/20"
+                    class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined">library_books</span>
+                    <p class="text-sm font-medium leading-normal font-display">My Library</p>
+                </a>
+            }
 
-      <a routerLink="/library" routerLinkActive="bg-primary/10 text-primary border-primary/20"
-        class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
-        <span class="material-symbols-outlined">library_books</span>
-        <p class="text-sm font-medium leading-normal font-display">My Library</p>
-      </a>
+            <a routerLink="/settings" routerLinkActive="bg-primary/10 text-primary border-primary/20"
+                class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer mt-4">
+                <span class="material-symbols-outlined">settings</span>
+                <p class="text-sm font-medium leading-normal font-display">Settings</p>
+            </a>
+        </nav>
+    </div>
 
-      <a routerLink="/settings" routerLinkActive="bg-primary/10 text-primary border-primary/20"
-        class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 text-text-muted hover:text-white border border-transparent transition-colors cursor-pointer">
-        <span class="material-symbols-outlined">settings</span>
-        <p class="text-sm font-medium leading-normal font-display">Settings</p>
-      </a>
-
-		</nav>
-	</div>
-
-	<div class="flex flex-col gap-4">
-		<button routerLink="/upload"
-			class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg h-12 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-lg shadow-primary/20">
-			<span class="material-symbols-outlined text-[20px]">add</span>
-			<span>New Upload</span>
-		</button>
-	</div>
+    <div class="flex flex-col gap-4 mt-auto pt-6">
+        @if (userRole === 'admin') {
+            <p class="text-xs font-bold uppercase tracking-wider text-primary/50 mb-1 px-3">System Health</p>
+            <div class="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-text-secondary-dark">Node Status</p>
+                    <span class="size-2 rounded-full bg-primary animate-pulse"></span>
+                </div>
+                <div class="flex items-end gap-2">
+                    <span class="text-2xl font-bold text-text-primary-dark">98.2%</span>
+                    <span class="text-xs text-primary mb-1">Stable</span>
+                </div>
+                <div class="w-full bg-surface-dark h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div class="bg-primary h-full w-[98%]"></div>
+                </div>
+            </div>
+        } @else {
+            <button routerLink="/upload"
+                class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg h-12 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span>New Upload</span>
+            </button>
+        }
+    </div>
 </aside>

@@ -10,5 +10,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
+  userRole: string = 'user';
 
+  ngOnInit() {
+    const userDataStr = localStorage.getItem('userData');
+    if (userDataStr) {
+      const user = JSON.parse(userDataStr);
+      this.userRole = user.role;
+    }
+  }
 }
