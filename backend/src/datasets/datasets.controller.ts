@@ -73,25 +73,9 @@ export class DatasetsController {
     }),
   )
   uploadDataset(@UploadedFile() file: Express.Multer.File) {
-    // 1. Verificamos que el archivo haya llegado
     if (!file) {
       throw new BadRequestException('No se ha subido ningún archivo');
     }
-
-    // 2. IMPRIMIR EN CONSOLA EL TIPO REAL (Para depurar)
-    console.log('✅ Archivo recibido correctamente:', file.filename);
-    console.log('ℹ️ Tipo MIME detectado:', file.mimetype);
-
-    // 3. Validar manualmente (Opcional, pero recomendado)
-    // Si quieres bloquear tipos raros, puedes descomentar esto:
-    /*
-    const allowedMimeTypes = ['application/zip', 'application/x-zip-compressed', 'application/octet-stream'];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-       // Aquí podrías borrar el archivo si no es válido
-       throw new BadRequestException(`Tipo de archivo no válido: ${file.mimetype}`);
-    }
-    */
-
     return this.datasetsService.processDataset(file);
   }
 

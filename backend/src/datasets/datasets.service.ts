@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -11,6 +14,8 @@ import { Image, ImageDocument } from './schemas/image.schema';
 import { CreateImageDto } from './dto/create-image.dto';
 import path from 'path/win32';
 import AdmZip from 'adm-zip';
+import * as fs from 'fs';
+import csv from 'csv-parser';
 
 @Injectable()
 export class DatasetsService {
@@ -92,43 +97,118 @@ export class DatasetsService {
     };
   }
 
-  processDataset(file: Express.Multer.File) {
-    console.log('📂 Service procesando archivo:', file.path);
+  async processDataset(file: Express.Multer.File) {
+    console.log('Service procesando archivo:', file.path);
 
-    // 1. Definir dónde vamos a descomprimir
-    // Creamos una carpeta con el mismo nombre del archivo (sin .zip)
+    // 1. Definir rutas
     const extractPath = path.join(
       path.dirname(file.path),
       'extracted',
       file.filename.replace(/\.[^/.]+$/, ''),
     );
 
-    // 2. Intentar descomprimir
     try {
+      // 2. Descomprimir
       const zip = new AdmZip(file.path);
-
-      // true = sobrescribir si ya existe
       zip.extractAllTo(extractPath, true);
+      console.log(`Descomprimido en: ${extractPath}`);
 
-      console.log(`Archivo descomprimido en: ${extractPath}`);
+      // 3. Leer el contenido de la carpeta
+      const files = fs.readdirSync(extractPath);
 
-      // 3. Ver qué archivos hay dentro (opcional, para verificar)
-      const zipEntries = zip.getEntries();
-      const fileNames = zipEntries.map((entry) => entry.entryName);
+      // 4. Buscar archivos específicos
+      const imageFiles = files.filter((f) => f.match(/\.(jpg|jpeg|png)$/i));
+      const csvFile = files.find((f) => f.endsWith('.csv'));
+
+      let annotations = {};
+
+      // 5. Si hay CSV, procesarlo
+      if (csvFile) {
+        console.log(`CSV encontrado: ${csvFile}, procesando etiquetas...`);
+        const csvPath = path.join(extractPath, csvFile);
+        annotations = await this.parseCsv(csvPath);
+      }
+
+      // 6. Fusionar Imágenes con sus Anotaciones y Mapear al Esquema
+      const processedImages = imageFiles.map((fileName) => {
+        // Obtenemos la fila del CSV correspondiente (o un objeto vacío si no existe)
+        const csvRow = annotations[fileName] || {};
+
+        // RUTA RELATIVA: "uploads/extracted/dataset-xyz/archivo.jpg"
+        // Asegúrate de que esta ruta sea accesible públicamente o úsala solo internamente
+        const relativePath = path.join(
+          'uploads',
+          'extracted',
+          file.filename.replace(/\.[^/.]+$/, ''),
+          fileName,
+        );
+
+        // CONSTRUCCIÓN DEL OBJETO SEGÚN EL ESQUEMA 'Image'
+        return {
+          file_name: fileName,
+          storage_url: relativePath, // Campo 'storage_url' del esquema
+          metadata: {
+            width: Number(csvRow.width) || 0,
+            height: Number(csvRow.height) || 0,
+            ripeness_degree: csvRow.ripeness_degree || 'Unknown',
+
+            // Reconstruimos el objeto anidado 'spectral_values'
+            spectral_values: {
+              r: Number(csvRow.spectral_r) || 0,
+              g: Number(csvRow.spectral_g) || 0,
+              b: Number(csvRow.spectral_b) || 0,
+              nir: Number(csvRow.spectral_nir) || 0,
+            },
+
+            // Intentamos parsear las anotaciones si vienen como JSON string, sino array vacío
+            annotations: csvRow.annotations_json
+              ? JSON.parse(csvRow.annotations_json)
+              : [],
+          },
+        };
+      });
 
       return {
-        message: 'Dataset subido y descomprimido exitosamente',
-        originalName: file.originalname,
-        extractedLocation: extractPath,
-        filesFound: fileNames, // Devolvemos la lista de archivos encontrados
+        message: 'Procesamiento exitoso',
+        totalImages: processedImages.length,
+        hasAnnotations: !!csvFile,
+        preview: processedImages.slice(0, 3), // Devolvemos los primeros 3 al frontend
       };
     } catch (error) {
-      console.error('Error al descomprimir:', error);
-      return {
-        message: 'Error al procesar el archivo ZIP',
-        error: error.message,
-      };
+      console.error('Error al procesar:', error);
+      throw error;
     }
+  }
+
+  // --- Helper para leer CSV como Promesa ---
+  private parseCsv(filePath: string): Promise<Record<string, any>> {
+    return new Promise((resolve, reject) => {
+      const results: Record<string, any> = {};
+
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => {
+          // AQUÍ ESTA EL TRUCO:
+          // Necesitamos saber cuál columna del CSV tiene el nombre de la imagen.
+          // Por defecto intentamos buscar 'filename', 'image', 'id', o usamos la primera columna.
+
+          const keys = Object.keys(data);
+          // Buscamos una columna que parezca nombre de archivo (termina en .jpg)
+          const filenameKey =
+            keys.find((k) => data[k].toString().match(/\.(jpg|png)$/i)) ||
+            keys[0];
+
+          const fileName = data[filenameKey];
+
+          if (fileName) {
+            results[fileName] = data; // Guardamos toda la fila usando el nombre como clave
+          }
+        })
+        .on('end', () => {
+          resolve(results);
+        })
+        .on('error', (err) => reject(err));
+    });
   }
 
   update(id: number, updateDatasetDto: UpdateDatasetDto) {
