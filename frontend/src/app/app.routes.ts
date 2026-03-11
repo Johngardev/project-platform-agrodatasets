@@ -25,9 +25,13 @@ export const routes: Routes = [
 		loadComponent: () => import('./features/dashboard/pages/upload-page/upload-page.component').then(m => m.UploadPageComponent)
 	},
 	//LOGIN (Fuera del Layout Principal)
+	{
+		path: 'login',
+		loadComponent: () => import('./features/login/login/login.component').then(m => m.LoginComponent)
+	},
 	{ 
 		path: 'auth',
-		redirectTo: '',
+		redirectTo: 'login',
 		pathMatch: 'full'
 	},
 

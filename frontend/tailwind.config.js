@@ -10,6 +10,8 @@ module.exports = {
         
         "primary": "#65a30d",       // Lime-600 (Tu verde aguacate)
         "primary-hover": "#4d7c0f", // Lime-700
+
+        "secondary-dark": "#1e293b",
         
         // Fondos específicos del diseño Stitch
         "background-light": "#f6f6f8", 
@@ -27,6 +29,7 @@ module.exports = {
         // Textos
         "text-primary-dark": "#ffffff",
         "text-secondary-dark": "#92a4c9", // El texto gris azulado
+        "text-muted": "#94a3b8",
       },
       fontFamily: {
         "display": ["Space Grotesk", "sans-serif"], // Títulos
