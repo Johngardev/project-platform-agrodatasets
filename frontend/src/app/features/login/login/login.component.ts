@@ -70,7 +70,7 @@ export class LoginComponent {
           localStorage.setItem('user_data', JSON.stringify(res.user));
 
           // 2. Redirigimos a la ruta según el rol del usuario
-          if (res.user.role === 'admin') {
+          if (res.user.role === 'ADMIN') {
             this._router.navigate(['/admin']);
           } else {
             this._router.navigate(['/']);

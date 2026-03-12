@@ -11,7 +11,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
     const user = JSON.parse(userDataString);
     
     // Verificamos si tiene el rol de administrador
-    if (user.role === 'admin') {
+    if (user.role === 'ADMIN') {
       return true; // Es admin, lo dejamos pasar
     } else {
       // Es un usuario normal, lo mandamos al dashboard regular
