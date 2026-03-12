@@ -1,0 +1,145 @@
+<div class="p-6 md:p-8 overflow-y-auto h-full text-text-primary-dark">
+
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border-dark mb-8">
+    <div class="flex items-center gap-4">
+      <h2 class="text-2xl font-bold font-display tracking-tight">Researcher Management</h2>
+      <span
+        class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/20">Live
+        Database</span>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <button
+        class="flex w-full sm:w-auto items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-xl">person_add</span>
+        <span class="text-sm">Add Researcher</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
+      <p class="text-text-secondary-dark text-sm font-medium">Total Researchers</p>
+      <h3 class="text-2xl font-display font-bold mt-1">1,284</h3>
+      <p class="text-primary text-xs font-bold mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">trending_up</span> +12% this month
+      </p>
+    </div>
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
+      <p class="text-text-secondary-dark text-sm font-medium">Active Now</p>
+      <h3 class="text-2xl font-display font-bold mt-1">86</h3>
+      <p class="text-text-muted text-xs font-medium mt-2 flex items-center gap-1">
+        Across 14 active studies
+      </p>
+    </div>
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
+      <p class="text-text-secondary-dark text-sm font-medium">Pending Approval</p>
+      <h3 class="text-2xl font-display font-bold mt-1">19</h3>
+      <p class="text-yellow-500 text-xs font-bold mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-xs">pending</span> Action required
+      </p>
+    </div>
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
+      <p class="text-text-secondary-dark text-sm font-medium">Storage Used</p>
+      <h3 class="text-2xl font-display font-bold mt-1">2.4 TB</h3>
+      <div class="w-full bg-secondary-dark h-1.5 rounded-full mt-3 overflow-hidden">
+        <div class="bg-primary h-full rounded-full" style="width: 65%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">
+
+    <div
+      class="p-4 border-b border-border-dark flex flex-wrap items-center justify-between gap-4 bg-surface-dark-highlight/30">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-xl">group</span>
+        <h3 class="text-lg font-display font-bold">Researchers List</h3>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-text-secondary-dark">Showing 1-5 of 1,284 results</span>
+        <div class="flex items-center gap-1 ml-4">
+          <button
+            class="size-8 flex items-center justify-center rounded-lg border border-border-dark text-text-muted hover:text-white hover:border-primary/50 transition-colors">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          <button
+            class="size-8 flex items-center justify-center rounded-lg border border-border-dark text-text-muted hover:text-white hover:border-primary/50 transition-colors">
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-dark-highlight/50">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Researcher</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Role</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Access Type</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Joined Date</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark text-right">Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-dark">
+
+          @for (user of researchersList; track user.email) {
+          <tr class="hover:bg-white/5 transition-colors group">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div
+                  class="size-10 rounded-full bg-secondary-dark border border-border-dark shrink-0 flex items-center justify-center text-text-muted group-hover:border-primary/50 transition-colors">
+                  <span class="material-symbols-outlined">person</span>
+                </div>
+                <div>
+                  <p class="text-sm font-bold">{{ user.name }}</p>
+                  <p class="text-xs text-text-secondary-dark">{{ user.email }}</p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              @if (user.role === 'ADMIN') {
+              <span
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/20">
+                Super Admin
+              </span>
+              } @else {
+              <span
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-surface-dark-highlight text-text-muted border border-border-dark">
+                Researcher
+              </span>
+              }
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                @if (user.userType === 'CONTRIBUTOR') {
+                <div class="size-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
+                <span class="text-xs font-medium text-blue-400">Contributor</span>
+                } @else {
+                <div class="size-2 rounded-full bg-text-secondary-dark"></div>
+                <span class="text-xs font-medium text-text-secondary-dark">Viewer Only</span>
+                }
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-sm text-text-secondary-dark font-mono text-xs">
+              {{ user.createdAt | date:'MMM dd, yyyy' }}
+            </td>
+
+            <td class="px-6 py-4 text-right">
+              <button class="text-text-muted hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10">
+                <span class="material-symbols-outlined text-xl">more_vert</span>
+              </button>
+            </td>
+          </tr>
+          }
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
