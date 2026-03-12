@@ -9,7 +9,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row items-center gap-4">
-      <button
+      <button (click)="openModal()"
         class="flex w-full sm:w-auto items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-lg shadow-primary/20">
         <span class="material-symbols-outlined text-xl">person_add</span>
         <span class="text-sm">Add Researcher</span>
@@ -143,3 +143,78 @@
     </div>
   </div>
 </div>
+
+@if (isModalOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-background-dark/80 backdrop-blur-sm p-4">
+    <div class="bg-surface-dark border border-border-dark rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+      
+      <div class="p-6 border-b border-border-dark flex items-center justify-between bg-surface-dark-highlight/30">
+        <div class="flex items-center gap-3">
+          <div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined">person_add</span>
+          </div>
+          <div>
+            <h3 class="text-xl font-display font-bold text-text-primary-dark">Add New Researcher</h3>
+            <p class="text-xs text-text-secondary-dark">Create credentials and assign roles.</p>
+          </div>
+        </div>
+        <button (click)="closeModal()" class="text-text-muted hover:text-white transition-colors p-1 rounded-md hover:bg-red-600">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form [formGroup]="researcherForm" (ngSubmit)="onSubmit()" class="p-6 flex flex-col gap-5">
+        
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-bold text-text-secondary-dark">Full Name</label>
+          <input type="text" formControlName="name" placeholder="Dr. Jhon Doe" 
+                 class="bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-bold text-text-secondary-dark">Email Address</label>
+          <input type="email" formControlName="email" placeholder="j.doe@avohub.org" 
+                 class="bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-bold text-text-secondary-dark">Temporary Password</label>
+          <input type="password" formControlName="password" placeholder="••••••••" 
+                 class="bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all">
+          <p class="text-[10px] text-text-muted">Will be hashed securely in the backend.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-bold text-text-secondary-dark">System Role</label>
+            <select formControlName="role" 
+                    class="bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer">
+              <option value="USER">User</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-bold text-text-secondary-dark">Access Type</label>
+            <select formControlName="userType" 
+                    class="bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer">
+              <option value="CONTRIBUTOR">Contributor</option>
+              <option value="VIEWER">Viewer Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-border-dark">
+          <button type="button" (click)="closeModal()" 
+                  class="px-4 py-2 rounded-lg text-sm font-bold text-text-secondary-dark hover:text-white hover:bg-white/5 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="!researcherForm.valid"
+                  class="px-5 py-2 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20">
+            Create Researcher
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
