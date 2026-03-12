@@ -46,4 +46,18 @@
     </div>
   </div>
 
+  <section class="flex flex-col gap-6">
+    <h2 class="text-white text-xl font-bold">Datasets Pending Review</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (ds of datasets; track ds._id) {
+      <app-dataset-card [id]="ds._id" [title]="ds.name" [uploader]="'ds'" [date]="'2026-02-01'" [year]="'2026'"
+        [imageCount]="ds.image_count + ' imgs'" [imageUrl]="'/assets/avocado-placeholder.jpg'" />
+      } @empty {
+      <p class="text-text-secondary">Cargando datasets...</p>
+      }
+    </div>
+
+  </section>
+
 </main>

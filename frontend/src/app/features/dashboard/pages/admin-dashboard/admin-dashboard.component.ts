@@ -1,12 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { DatasetCardComponent } from '../../../../shared/components/dataset-card/dataset-card.component';
+import { DatasetService } from '../../../../core/services/dataset.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [],
+  imports: [DatasetCardComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
 export class AdminDashboardComponent {
+  datasetService = inject(DatasetService);
+  datasets: any[] = [];
 
+  ngOnInit() {
+    this.datasetService.getDatasets().subscribe(data => {
+      this.datasets = data;
+    });
+  }  
 }
