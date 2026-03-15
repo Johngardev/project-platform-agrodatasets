@@ -2,6 +2,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ResearchersService } from '../../../../core/services/researchers.service';
+import Swal from 'sweetalert2';
 
 export interface UserDocument {
   _id?: string;
@@ -122,6 +123,14 @@ export class ResearchersComponent implements OnInit {
               this.researchersList[index] = { ...this.researchersList[index], ...updatedUser };
             }
             this.closeModal();
+
+            Swal.fire({
+              title: '¡Actualizado!',
+              text: 'El investigador se actualizó correctamente.',
+              icon: 'success',
+              timer: 2000, // Se cierra solo después de 2 segundos
+              showConfirmButton: false
+            });
           },
           error: (err) => console.error('Error updating researcher:', err)
         });
@@ -131,11 +140,25 @@ export class ResearchersComponent implements OnInit {
           next: (newUser) => {
             this.researchersList.unshift(newUser);
             this.closeModal();
+
+            Swal.fire({
+              title: '¡Creado!',
+              text: 'El investigador se creó correctamente.',
+              icon: 'success',
+              timer: 2000, // Se cierra solo después de 2 segundos
+              showConfirmButton: false
+            });
           },
           error: (err) => {
             console.error('Error creating researcher:', err);
             if (err.status === 409 || err.error?.message?.includes('duplicate')) {
-              alert('This email is already registered!');
+              Swal.fire({
+                title: 'Error',
+                text: 'This email is already registered!',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+              });
             }
           }
         });
@@ -149,15 +172,28 @@ export class ResearchersComponent implements OnInit {
     if (!id) return;
 
     // Alerta de confirmación nativa (puedes cambiarla por un modal de confirmación después)
-    if (confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+    if (confirm(`Are you sure you want to delete the researcher "${name}"? This action cannot be undone.`)) {
       this.researchersService.deleteResearcher(id).subscribe({
         next: () => {
           // Removemos el usuario de la tabla sin recargar
           this.researchersList = this.researchersList.filter(user => user._id !== id);
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'The researcher has been deleted.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
         },
         error: (err) => {
           console.error('Error deleting researcher:', err);
-          alert('Failed to delete researcher. Check if you have Admin permissions.');
+          Swal.fire({
+            title: 'Error',
+            text: 'There was an error deleting the researcher. Please try again.',
+            icon: 'error',
+            timer: 2000,
+            showConfirmButton: false
+          });
         }
       });
     }
