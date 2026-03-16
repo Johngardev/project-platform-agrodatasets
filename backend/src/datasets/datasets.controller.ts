@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -42,10 +40,39 @@ export class DatasetsController {
 
   @Post(':id/images')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/images', // Asegúrate de que esta carpeta exista
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `img-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
   async addImage(
     @Param('id') id: string,
-    @Body() createImageDto: CreateImageDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('metadata') metadataString: string, // El frontend manda un string JSON
   ) {
+    if (!file) {
+      throw new BadRequestException('No se ha subido ninguna imagen');
+    }
+
+    // 1. Parseamos la metadata que viene como string desde el FormData de Angular
+    const metadata = metadataString ? JSON.parse(metadataString) : {};
+
+    // 2. Construimos el DTO manualmente con los datos del archivo guardado
+    const createImageDto: CreateImageDto = {
+      file_name: file.filename,
+      storage_url: file.path, // La ruta donde se guardó
+      metadata: metadata,
+    };
+
+    // 3. Llamamos a tu servicio que ya hace la magia en la BD
     return this.datasetsService.addImage(id, createImageDto);
   }
 
