@@ -20,6 +20,11 @@
 			</div>
 
 			<div class="flex gap-3">
+        <button (click)="openUploadModal()"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 transition-all text-white text-sm font-medium shadow-sm shadow-primary/20">
+          <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+          Add Image
+        </button>
 				<button
 					class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark hover:border-primary/50 hover:text-primary transition-all text-white text-sm font-medium shadow-sm">
 					<span class="material-symbols-outlined text-[20px]">download</span>
@@ -138,4 +143,59 @@
 			}
 		</div>
 	</section>
+
+  @if (isUploadModalOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-background-dark border border-border-dark rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+      
+      <div class="flex justify-between items-center p-5 border-b border-border-dark bg-surface-dark/50">
+        <h3 class="text-lg font-bold text-white font-display">Upload New Image</h3>
+        <button (click)="closeUploadModal()" class="text-text-muted hover:text-white transition-colors rounded-full p-1 hover:bg-border-dark/50">
+          <span class="material-symbols-outlined block">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 flex flex-col gap-5">
+        
+        <label for="imageUpload" 
+               class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border-dark hover:border-primary hover:bg-primary/5 rounded-xl cursor-pointer transition-all bg-surface-dark group">
+          <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <span class="material-symbols-outlined text-4xl text-text-muted group-hover:text-primary mb-2 transition-colors">cloud_upload</span>
+            <p class="mb-1 text-sm text-text-muted"><span class="font-semibold text-white">Click to upload</span> or drag and drop</p>
+            <p class="text-xs text-text-muted opacity-70">JPG or PNG (MAX. 5MB)</p>
+          </div>
+          <input id="imageUpload" type="file" class="hidden" accept="image/png, image/jpeg" (change)="onFileSelected($event)" />
+        </label>
+
+        @if (selectedFile) {
+        <div class="flex items-center gap-3 p-3 bg-surface-dark border border-border-dark rounded-lg">
+          <div class="h-10 w-10 bg-primary/20 text-primary rounded flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">image</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-white truncate">{{ selectedFile.name }}</p>
+            <p class="text-xs text-text-muted">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</p>
+          </div>
+          <button (click)="selectedFile = null" class="text-text-muted hover:text-red-400 p-1">
+            <span class="material-symbols-outlined text-[20px]">delete</span>
+          </button>
+        </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3 p-5 border-t border-border-dark bg-surface-dark/30">
+        <button (click)="closeUploadModal()" class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-white hover:bg-surface-dark transition-colors">
+          Cancel
+        </button>
+        <button 
+          (click)="uploadSingleImage()" 
+          [disabled]="!selectedFile"
+          class="px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 disabled:bg-surface-dark disabled:text-text-muted disabled:cursor-not-allowed transition-all text-white text-sm font-medium shadow-sm">
+          Upload Image
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
 </main>
