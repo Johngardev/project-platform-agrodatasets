@@ -100,7 +100,7 @@
 
           <div
             class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
-            <button
+            <button [routerLink]="['/dataset', id, 'image', img._id]"
               class="bg-white hover:bg-primary hover:text-white text-black rounded-full p-2 transition-colors transform hover:scale-110 shadow-lg"
               title="Ver completa">
               <span class="material-symbols-outlined block text-[22px]">visibility</span>

@@ -43,6 +43,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'dataset/:datasetId/image/:imageId',
+        loadComponent: () =>
+          import('./features/dashboard/pages/image-detail/image-detail.component').then(
+            (m) => m.ImageDetailComponent,
+          ),
+      },
+      {
         path: 'dataset/:id',
         loadComponent: () =>
           import('./features/dashboard/pages/dataset-detail/dataset-detail.component').then(

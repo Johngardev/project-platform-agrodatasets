@@ -1,0 +1,121 @@
+<div class="h-screen w-full flex flex-col bg-[#0B0F16] font-body overflow-hidden">
+  
+  <header class="flex items-center justify-between px-4 h-14 bg-[#111722] border-b border-[#232f48] shrink-0">
+    <div class="flex items-center gap-3">
+      <div>
+        <h2 class="text-white text-lg font-bold leading-tight font-display">AgriVis Platform</h2>
+      </div>
+      <div class="h-6 w-px bg-[#232f48] mx-2"></div>
+      
+      <nav class="flex items-center gap-2">
+        <a [routerLink]="['/']" class="text-text-muted text-sm font-medium hover:text-white transition-colors">Dashboard</a>
+        <span class="text-text-muted text-sm font-medium">/</span>
+        <a [routerLink]="['/dataset', datasetId]" class="text-text-muted text-sm font-medium hover:text-white transition-colors">
+          {{ dataset()?.name || 'Loading...' }}
+        </a>
+        <span class="text-text-muted text-sm font-medium">/</span>
+        <span class="text-white text-sm font-medium">{{ image()?.file_name || 'Loading...' }}</span>
+      </nav>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex gap-2">
+        <button (click)="goBack()" class="flex items-center justify-center rounded-lg h-9 px-4 border border-border-dark text-text-muted hover:bg-surface-dark text-sm font-bold transition-colors">
+          <span class="material-symbols-outlined mr-2 text-[18px]">arrow_back</span>
+          Regresar
+        </button>
+        <button class="flex items-center justify-center rounded-lg h-9 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-colors shadow-sm shadow-primary/20">
+          <span class="material-symbols-outlined mr-2 text-[18px]">save</span>
+          Save Metadata
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden relative">
+    
+    <main class="flex-1 relative bg-[#0B0F16] flex items-center justify-center overflow-hidden group/canvas">
+      <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#3b4d6e 1px, transparent 1px); background-size: 24px 24px;"></div>
+      
+      @if (image()) {
+      <div class="relative transition-transform duration-200 ease-out scale-100 origin-center shadow-2xl max-w-[80%] max-h-[80%]">
+        <img [src]="getImageUrl()" 
+             [alt]="image().file_name" 
+             class="w-full h-full object-contain rounded-sm select-none" draggable="false"/>
+      </div>
+      } @else {
+        <div class="text-white flex flex-col items-center">
+           <span class="material-symbols-outlined animate-spin text-4xl mb-2 text-primary">autorenew</span>
+           <p>Cargando imagen...</p>
+        </div>
+      }
+      
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-[#111722]/90 backdrop-blur border border-[#232f48] rounded-full p-2 flex gap-1 shadow-xl z-40">
+        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">add</span></button>
+        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">remove</span></button>
+        <div class="w-px h-6 bg-[#232f48] self-center mx-1"></div>
+        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">center_focus_strong</span></button>
+      </div>
+    </main>
+
+    <aside class="w-80 flex-none bg-[#111722] border-l border-[#232f48] flex flex-col z-10">
+      <div class="flex border-b border-[#232f48]">
+        <button class="flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary bg-[#161b26]">
+          Metadata
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-6">
+        @if (image()) {
+          <div>
+            <h3 class="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">Valores Espectrales</h3>
+            <div class="grid grid-cols-2 gap-y-3 gap-x-2">
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">R (Red)</span>
+                <span class="text-xs text-white font-mono">{{ image().metadata?.spectral_values?.r ?? 0 }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">G (Green)</span>
+                <span class="text-xs text-white font-mono">{{ image().metadata?.spectral_values?.g ?? 0 }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">B (Blue)</span>
+                <span class="text-xs text-white font-mono">{{ image().metadata?.spectral_values?.b ?? 0 }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">NIR (InfraRojo)</span>
+                <span class="text-xs text-primary font-mono font-bold">{{ image().metadata?.spectral_values?.nir ?? 0 }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">Madurez</span>
+                <span class="text-xs text-white font-mono">{{ image().metadata?.ripeness_degree || 'N/A' }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">Dimensiones</span>
+                <span class="text-xs text-white font-mono">{{ image().metadata?.width || 0 }} x {{ image().metadata?.height || 0 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-px bg-[#232f48]"></div>
+
+          <div class="flex flex-col flex-1 min-h-0">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-bold text-text-muted uppercase tracking-wider">Raw Metadata (JSON)</h3>
+            </div>
+            <div class="bg-[#0B0F16] rounded-lg p-3 overflow-x-auto border border-[#232f48]">
+              <pre class="text-[10px] leading-relaxed font-mono font-medium text-text-muted">{{ getFormattedMetadata() }}</pre>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="p-4 border-t border-[#232f48] bg-[#161b26]">
+        <button class="w-full flex items-center justify-center gap-2 rounded-lg py-2 bg-transparent border border-[#232f48] text-text-muted text-sm font-medium hover:text-white hover:bg-[#232f48] transition-all">
+          <span class="material-symbols-outlined text-[18px]">download</span>
+          Download Image
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>
