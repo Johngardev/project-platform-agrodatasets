@@ -1,6 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatasetService } from '../../../../core/services/dataset.service';
 
 @Component({
@@ -10,8 +10,9 @@ import { DatasetService } from '../../../../core/services/dataset.service';
   templateUrl: './image-detail.component.html',
   styleUrl: './image-detail.component.css'
 })
-export class ImageDetailComponent {
+export class ImageDetailComponent implements OnInit {
   private _route = inject(ActivatedRoute);
+  private _router = inject(Router);
   private _datasetService = inject(DatasetService);
   private _location = inject(Location);
   
@@ -20,32 +21,72 @@ export class ImageDetailComponent {
 
   image = signal<any>(null);
   dataset = signal<any>(null);
+  imagesList = signal<any[]>([]);
+  currentIndex = signal<number>(0);
+
+  canGoPrevious = computed(() => this.currentIndex() > 0);
+  canGoNext = computed(() => this.currentIndex() < this.imagesList().length - 1);
 
   ngOnInit() {
-    this.datasetId = this._route.snapshot.paramMap.get('datasetId') || '';
-    this.imageId = this._route.snapshot.paramMap.get('imageId') || '';
+    // IMPORTANTE: Usamos subscribe en lugar de snapshot. 
+    // Así, si cambiamos de imagen pero seguimos en este componente, la URL se actualiza dinámicamente.
+    this._route.paramMap.subscribe(params => {
+      this.datasetId = params.get('datasetId') || '';
+      this.imageId = params.get('imageId') || '';
 
-    if (this.datasetId && this.imageId) {
-      this.fetchImageData();
-    }
+      if (this.datasetId && this.imageId) {
+        // Si no tenemos la lista cargada, llamamos al backend
+        if (this.imagesList().length === 0) {
+          this.fetchImageData();
+        } else {
+          // Si ya la tenemos, solo actualizamos la vista localmente (¡Súper rápido!)
+          this.updateCurrentImage();
+        }
+      }
+    });
   }
 
   fetchImageData() {
-    // Reutilizamos tu método existente
     this._datasetService.getDatasetById(this.datasetId).subscribe({
       next: (res) => {
         this.dataset.set(res.dataset);
         
-        // Buscamos la imagen específica en la lista
-        const foundImage = res.images.find((img: any) => img._id === this.imageId);
-        this.image.set(foundImage);
+        // 👇 ESTA ES LA LÍNEA MÁGICA QUE FALTABA 👇
+        this.imagesList.set(res.images); 
+        
+        // Ahora que la lista ya está guardada, usamos nuestro propio método para actualizar la vista
+        this.updateCurrentImage();
       },
       error: (err) => console.error('Error fetching image details', err)
     });
   }
 
+  updateCurrentImage() {
+    const list = this.imagesList();
+    const index = list.findIndex(img => img._id === this.imageId);
+    
+    if (index !== -1) {
+      this.currentIndex.set(index);
+      this.image.set(list[index]);
+    }
+  }
+
+  goPrevious() {
+    if (this.canGoPrevious()) {
+      const prevId = this.imagesList()[this.currentIndex() - 1]._id;
+      this._router.navigate(['/dataset', this.datasetId, 'image', prevId]);
+    }
+  }
+
+  goNext() {
+    if (this.canGoNext()) {
+      const nextId = this.imagesList()[this.currentIndex() + 1]._id;
+      this._router.navigate(['/dataset', this.datasetId, 'image', nextId]);
+    }
+  }
+
   goBack() {
-    this._location.back();
+    this._router.navigate(['/dataset', this.datasetId]);
   }
 
   // Helper para construir la URL de la imagen

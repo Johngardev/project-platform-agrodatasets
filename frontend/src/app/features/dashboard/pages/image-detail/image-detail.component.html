@@ -3,7 +3,7 @@
   <header class="flex items-center justify-between px-4 h-14 bg-[#111722] border-b border-[#232f48] shrink-0">
     <div class="flex items-center gap-3">
       <div>
-        <h2 class="text-white text-lg font-bold leading-tight font-display">AgriVis Platform</h2>
+        <h2 class="text-white text-lg font-bold leading-tight font-display">Avocado Hub Platform</h2>
       </div>
       <div class="h-6 w-px bg-[#232f48] mx-2"></div>
       
@@ -37,6 +37,22 @@
     <main class="flex-1 relative bg-[#0B0F16] flex items-center justify-center overflow-hidden group/canvas">
       <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#3b4d6e 1px, transparent 1px); background-size: 24px 24px;"></div>
       
+      @if (imagesList().length > 0) {
+      <div class="absolute top-6 left-6 text-[#92a4c9] text-xs font-mono bg-[#111722]/80 px-3 py-1.5 rounded-full border border-[#232f48] backdrop-blur-sm z-40 shadow-lg">
+        Imagen {{ currentIndex() + 1 }} de {{ imagesList().length }}
+      </div>
+      }
+
+      <button (click)="goPrevious()" [disabled]="!canGoPrevious()"
+              class="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-[#111722]/80 border border-[#232f48] text-white hover:bg-primary hover:scale-110 disabled:opacity-20 disabled:hover:bg-[#111722]/80 disabled:hover:scale-100 transition-all backdrop-blur-sm shadow-xl cursor-pointer">
+        <span class="material-symbols-outlined text-3xl block">chevron_left</span>
+      </button>
+
+      <button (click)="goNext()" [disabled]="!canGoNext()"
+              class="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-[#111722]/80 border border-[#232f48] text-white hover:bg-primary hover:scale-110 disabled:opacity-20 disabled:hover:bg-[#111722]/80 disabled:hover:scale-100 transition-all backdrop-blur-sm shadow-xl cursor-pointer">
+        <span class="material-symbols-outlined text-3xl block">chevron_right</span>
+      </button>
+
       @if (image()) {
       <div class="relative transition-transform duration-200 ease-out scale-100 origin-center shadow-2xl max-w-[80%] max-h-[80%]">
         <img [src]="getImageUrl()" 
@@ -49,13 +65,15 @@
            <p>Cargando imagen...</p>
         </div>
       }
-      
+      <!--
+      // Controles de zoom y enfoque
       <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-[#111722]/90 backdrop-blur border border-[#232f48] rounded-full p-2 flex gap-1 shadow-xl z-40">
         <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">add</span></button>
         <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">remove</span></button>
         <div class="w-px h-6 bg-[#232f48] self-center mx-1"></div>
         <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">center_focus_strong</span></button>
       </div>
+      -->
     </main>
 
     <aside class="w-80 flex-none bg-[#111722] border-l border-[#232f48] flex flex-col z-10">
