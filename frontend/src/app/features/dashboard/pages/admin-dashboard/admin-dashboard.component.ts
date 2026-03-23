@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { DatasetCardComponent } from '../../../../shared/components/dataset-card/dataset-card.component';
 import { DatasetService } from '../../../../core/services/dataset.service';
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [DatasetCardComponent],
+  imports: [DatasetCardComponent, RouterLink],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })

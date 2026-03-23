@@ -57,18 +57,18 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'upload',
+        loadComponent: () =>
+          import('./features/dashboard/pages/upload-page/upload-page.component').then(
+            (m) => m.UploadPageComponent,
+          ),
+      },
+      {
         path: 'dashboard',
         redirectTo: '',
         pathMatch: 'full',
       },
     ],
-  },
-  {
-    path: 'upload',
-    loadComponent: () =>
-      import('./features/dashboard/pages/upload-page/upload-page.component').then(
-        (m) => m.UploadPageComponent,
-      ),
   },
   //LOGIN (Fuera del Layout Principal)
   {
