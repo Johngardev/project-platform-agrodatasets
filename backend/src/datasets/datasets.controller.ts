@@ -14,6 +14,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { DatasetsService } from './datasets.service';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
@@ -23,6 +24,7 @@ import { CreateImageDto } from './dto/create-image.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
 
 @Controller('datasets')
 export class DatasetsController {
@@ -107,8 +109,9 @@ export class DatasetsController {
   }
 
   @Get()
-  findAll() {
-    return this.datasetsService.findAll();
+  findAll(@Query('status') status?: string) {
+    // Ejemplo de uso desde Angular: GET /datasets?status=PENDING
+    return this.datasetsService.findAll(status);
   }
 
   @Get(':id')
@@ -116,9 +119,18 @@ export class DatasetsController {
     return this.datasetsService.findOne(id);
   }
 
+  @Patch(':id/status')
+  // @UseGuards(JwtAuthGuard, RolesGuard) // Opcional: Proteger para que solo Admin lo use
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: UpdateDatasetStatusDto,
+  ) {
+    return this.datasetsService.updateStatus(id, updateStatusDto);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDatasetDto: UpdateDatasetDto) {
-    return this.datasetsService.update(+id, updateDatasetDto);
+    return this.datasetsService.update(id, updateDatasetDto); // Le quitamos el '+' al id
   }
 
   @Delete(':id')

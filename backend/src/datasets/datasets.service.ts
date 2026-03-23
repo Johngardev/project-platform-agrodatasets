@@ -3,19 +3,28 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, NotFoundException } from '@nestjs/common';
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Dataset, DatasetDocument } from './schemas/dataset.schema';
+import {
+  Dataset,
+  DatasetDocument,
+  DatasetStatus,
+} from './schemas/dataset.schema';
 import { Image, ImageDocument } from './schemas/image.schema';
 import { CreateImageDto } from './dto/create-image.dto';
 import path from 'path/win32';
 import AdmZip from 'adm-zip';
 import * as fs from 'fs';
 import csv from 'csv-parser';
+import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
 
 @Injectable()
 export class DatasetsService {
@@ -31,7 +40,7 @@ export class DatasetsService {
     const createdDataset = new this.datasetModel({
       ...createDatasetDto, // Copia título, descripción, cultivo
       uploaded_by: userId, // Asigna el ID del usuario que sube el dataset
-      status: 'PENDING', // Estado inicial por defecto
+      status: DatasetStatus.PENDING, // Estado inicial por defecto
       image_count: 0,
     });
     return createdDataset.save();
@@ -64,10 +73,12 @@ export class DatasetsService {
     return savedImage;
   }
 
-  findAll(): Promise<Dataset[]> {
+  findAll(status?: string): Promise<Dataset[]> {
+    const filter = status ? { status } : {};
     return this.datasetModel
-      .find()
-      .populate('uploaded_by', 'username email') // Poblamos solo campos específicos
+      .find(filter)
+      .sort({ createdAt: -1 }) // Los más recientes primero
+      .populate('uploaded_by', 'username email')
       .exec();
   }
 
@@ -211,8 +222,38 @@ export class DatasetsService {
     });
   }
 
-  update(id: number, updateDatasetDto: UpdateDatasetDto) {
-    return `This action updates a #${id} dataset`;
+  async updateStatus(id: string, updateStatusDto: UpdateDatasetStatusDto) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('ID inválido');
+
+    const updated = await this.datasetModel.findByIdAndUpdate(
+      id,
+      {
+        status: updateStatusDto.status,
+        // Si lo aprueban, borramos la razón de rechazo por si antes había sido rechazado
+        rejection_reason:
+          updateStatusDto.status === DatasetStatus.REJECTED
+            ? updateStatusDto.rejection_reason
+            : null,
+      },
+      { new: true },
+    );
+
+    if (!updated) throw new NotFoundException('Dataset no encontrado');
+    return updated;
+  }
+
+  async update(id: string, updateDatasetDto: UpdateDatasetDto) {
+    if (!Types.ObjectId.isValid(id))
+      throw new BadRequestException('ID inválido');
+
+    const updated = await this.datasetModel.findByIdAndUpdate(
+      id,
+      updateDatasetDto,
+      { new: true },
+    );
+    if (!updated) throw new NotFoundException('Dataset no encontrado');
+    return updated;
   }
 
   remove(id: number) {
