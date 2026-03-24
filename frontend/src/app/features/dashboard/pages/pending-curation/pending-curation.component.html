@@ -28,13 +28,12 @@
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Images</th>
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Upload Date</th>
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Researcher</th>
-            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark text-right">Actions
-            </th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-dark">
 
-          @for (dataset of pendingDatasets; track dataset._id) {
+          @for (dataset of pendingDatasets(); track dataset._id) {
           <tr class="hover:bg-white/5 transition-colors group">
             <td class="px-6 py-5">
               <div class="flex items-center gap-3">
@@ -42,8 +41,7 @@
                   class="material-symbols-outlined text-primary/80 group-hover:text-primary transition-colors">folder_zip</span>
                 <div class="flex flex-col">
                   <span class="text-sm font-bold">{{ dataset.name }}</span>
-                  <span class="text-[10px] text-text-secondary-dark uppercase tracking-wider">{{ dataset.crop_type
-                    }}</span>
+                  <span class="text-[10px] text-text-secondary-dark uppercase tracking-wider">{{ dataset.crop_type }}</span>
                 </div>
               </div>
             </td>
@@ -59,7 +57,7 @@
                   class="size-6 rounded-full bg-secondary-dark border border-border-dark flex items-center justify-center text-[10px] font-bold text-text-muted">
                   {{ getInitials(dataset.uploaded_by.name) }}
                 </div>
-                <span class="text-sm font-medium text-text-secondary-dark">{{ dataset.uploaded_by.name }}</span>
+                <span class="text-sm font-medium text-text-secondary-dark">{{ dataset.uploaded_by.email }}</span>
               </div>
             </td>
             <td class="px-6 py-5">
@@ -75,12 +73,12 @@
                   <span class="material-symbols-outlined text-lg">download</span>
                 </button>
                 <div class="w-px h-8 bg-border-dark mx-1"></div>
-                <button
+                <button (click)="approveDataset(dataset._id)"
                   class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
                   title="Approve">
                   <span class="material-symbols-outlined text-lg">check_circle</span>
                 </button>
-                <button
+                <button (click)="rejectDataset(dataset._id)"
                   class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
                   title="Reject">
                   <span class="material-symbols-outlined text-lg">cancel</span>
@@ -90,7 +88,7 @@
           </tr>
           }
 
-          @if (pendingDatasets.length === 0) {
+          @if (pendingDatasets().length === 0) {
           <tr>
             <td colspan="5" class="px-6 py-8 text-center text-text-muted">
               No pending datasets to review. Good job!
@@ -109,13 +107,12 @@
         <span class="material-symbols-outlined text-primary">history</span>
         Recently Processed
       </h2>
-      <button class="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">View All
-        History</button>
+      <button class="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">View All History</button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      @for (item of historyDatasets; track item._id) {
+      @for (item of historyDatasets(); track item._id) {
       <div
         class="bg-surface-dark rounded-xl border border-border-dark p-4 flex flex-col gap-3 relative overflow-hidden group hover:border-primary/30 transition-colors shadow-sm">
 
@@ -139,10 +136,10 @@
           </div>
         </div>
 
-        @if (item.status === 'REJECTED' && item.rejection_reason) {
+        @if (item.status === 'REJECTED' && $any(item).rejection_reason) {
         <p class="text-[10px] text-red-400 italic line-clamp-1 truncate relative z-10"
-          title="{{ item.rejection_reason }}">
-          Reason: {{ item.rejection_reason }}
+          title="{{ $any(item).rejection_reason }}">
+          Reason: {{ $any(item).rejection_reason }}
         </p>
         }
 

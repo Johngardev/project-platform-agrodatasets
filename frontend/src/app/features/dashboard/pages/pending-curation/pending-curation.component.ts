@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Dataset, DatasetService } from '../../../../core/services/dataset.service';
 
 export interface UserPopulated {
   _id: string;
@@ -13,7 +14,7 @@ export interface DatasetDocument {
   description?: string;
   uploaded_by: UserPopulated; // Cuando haces .populate('uploaded_by') en NestJS
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  rejection_reason?: string | null;
+  rejection_reason?: string;
   image_count: number;
   crop_type: string;
   createdAt: string | Date;
@@ -28,43 +29,59 @@ export interface DatasetDocument {
   styleUrl: './pending-curation.component.css'
 })
 export class PendingCurationComponent {
+  private _datasetService = inject(DatasetService);
 
-  allDatasets: DatasetDocument[] = [
-    {
-      _id: 'd1', name: 'Hass_Maturity_v2_Final', description: 'Imágenes de maduración semana 42',
-      uploaded_by: { _id: 'u1', name: 'Dr. Arlo V.', email: 'arlo@avohub.org' },
-      status: 'PENDING', image_count: 1450, crop_type: 'Hass Avocado',
-      createdAt: '2023-10-24T10:00:00Z', updatedAt: '2023-10-24T10:00:00Z'
-    },
-    {
-      _id: 'd2', name: 'Organic_Yield_Patterns_Q3', description: 'Patrones de rendimiento orgánico',
-      uploaded_by: { _id: 'u2', name: 'Sarah Green', email: 'sarah@biotech.com' },
-      status: 'PENDING', image_count: 890, crop_type: 'Hass Avocado',
-      createdAt: '2023-10-23T14:30:00Z', updatedAt: '2023-10-23T14:30:00Z'
-    },
-    {
-      _id: 'd3', name: 'Irrigation_Logic_v1', description: 'Estrés hídrico',
-      uploaded_by: { _id: 'u3', name: 'Elena Rodriguez', email: 'elena@agri.com' },
-      status: 'APPROVED', image_count: 3200, crop_type: 'Hass Avocado',
-      createdAt: '2023-10-21T09:15:00Z', updatedAt: '2023-10-21T11:00:00Z'
-    },
-    {
-      _id: 'd4', name: 'Soil_pH_Raw_Data', description: 'Imágenes con ruido, descartadas',
-      uploaded_by: { _id: 'u4', name: 'Mark Chen', email: 'mark@eco.org' },
-      status: 'REJECTED', rejection_reason: 'Imágenes desenfocadas e iluminación pobre', image_count: 400, crop_type: 'Hass Avocado',
-      createdAt: '2023-10-20T16:45:00Z', updatedAt: '2023-10-20T18:20:00Z'
+  allDatasets = signal<Dataset[]>([]);
+
+  pendingDatasets = computed(() => this.allDatasets().filter(d => d.status === 'PENDING'));
+  historyDatasets = computed(() => this.allDatasets().filter(d => d.status !== 'PENDING'));
+
+  ngOnInit() {
+    this.loadDatasets();
+  }
+
+  loadDatasets() {
+    this._datasetService.getDatasets().subscribe({
+      next: (data) => this.allDatasets.set(data),
+      error: (err) => console.error('Error al cargar datasets:', err)
+    });
+  }  
+  
+  approveDataset(id: string) {
+    if (confirm('¿Estás seguro de que quieres aprobar este dataset?')) {
+      this._datasetService.updateDatasetStatus(id, 'APPROVED').subscribe({
+        next: (updatedDataset) => {
+          // Actualizamos la lista local para que la UI reaccione al instante
+          this.updateLocalDataset(updatedDataset);
+        },
+        error: (err) => console.error('Error aprobando', err)
+      });
     }
-  ];
-
-  get pendingDatasets(): DatasetDocument[] {
-    return  this.allDatasets.filter(d => d.status === 'PENDING');
   }
 
-  get historyDatasets(): DatasetDocument[] {
-    return  this.allDatasets.filter(d => d.status !== 'PENDING');
+  rejectDataset(id: string) {
+    const reason = prompt('Por favor, ingresa el motivo del rechazo:');
+    
+    if (reason !== null) { // Si el usuario no canceló el prompt
+      this._datasetService.updateDatasetStatus(id, 'REJECTED', reason).subscribe({
+        next: (updatedDataset) => {
+          this.updateLocalDataset(updatedDataset);
+        },
+        error: (err) => console.error('Error rechazando', err)
+      });
+    }
   }
 
-  getInitials(name: string): string {
+  private updateLocalDataset(updatedDataset: Dataset) {
+    this.allDatasets.update(datasets => 
+      datasets.map(d => d._id === updatedDataset._id ? updatedDataset : d)
+    );
+  }
+
+  getInitials(name: string | undefined): string {
+    // Si name no existe, devolvemos un valor por defecto
+    if (!name) return 'US'; 
+    
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   } 
 }

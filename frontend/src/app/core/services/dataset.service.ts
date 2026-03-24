@@ -4,7 +4,8 @@ import { Observable } from 'rxjs/internal/Observable';
 
 export interface User {
   _id: string;
-  name: string;
+  name?: string;
+  username?: string;
   email: string;
 }
 
@@ -35,10 +36,14 @@ export class DatasetService {
   }
 
   /**
-   * Obtiene todos los datasets (Para el Dashboard)
+   * Obtiene todos los datasets (Para el Dashboard) con la opcion de filtrado por estado (PENDING, APPROVED, REJECTED)
    */
-  getDatasets(): Observable<Dataset[]> {
-    return this._http.get<Dataset[]>(this.apiUrl);
+  getDatasets(status?: string): Observable<Dataset[]> {
+    let url = this.apiUrl;
+    if(status) {
+      url += `?status=${status}`;
+    }
+    return this._http.get<Dataset[]>(url);
   }
 
   /**
@@ -46,6 +51,17 @@ export class DatasetService {
    */
   getDatasetById(id: string): Observable<any> {
     return this._http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Aprueba o rechaza un dataset pendiente
+   */
+  updateDatasetStatus(id: string, status: 'APPROVED' | 'REJECTED', rejection_reason?: string): Observable<Dataset> {
+    const body: any = { status };
+    if (rejection_reason) {
+      body.rejection_reason = rejection_reason;
+    }
+    return this._http.patch<Dataset>(`${this.apiUrl}/${id}/status`, body);
   }
 
   /**
