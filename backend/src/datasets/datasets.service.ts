@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
@@ -73,13 +72,34 @@ export class DatasetsService {
     return savedImage;
   }
 
-  findAll(status?: string): Promise<Dataset[]> {
+  async findAll(status?: string): Promise<any[]> {
     const filter = status ? { status } : {};
-    return this.datasetModel
+    // 1. Obtenemos los datasets normales.
+    // Usamos .lean() para poder modificar el objeto y agregar la imagen
+    const datasets = await this.datasetModel
       .find(filter)
-      .sort({ createdAt: -1 }) // Los más recientes primero
-      .populate('uploaded_by', 'username email')
+      .sort({ createdAt: -1 })
+      .populate('uploaded_by', 'username email name') // Asegúrate de traer el nombre o username
+      .lean()
       .exec();
+
+    // 2. Buscamos la última imagen de cada dataset en paralelo
+    const datasetsWithImages = await Promise.all(
+      datasets.map(async (dataset) => {
+        const lastImage = await this.imageModel
+          .findOne({ dataset_id: dataset._id as any })
+          .sort({ createdAt: -1 }) // Obtenemos la más reciente
+          .exec();
+
+        return {
+          ...dataset,
+          // Si hay imagen devolvemos su ruta, si no, nulo
+          last_image_url: lastImage ? lastImage.storage_url : null,
+        };
+      }),
+    );
+
+    return datasetsWithImages;
   }
 
   async findOne(id: string) {
@@ -99,7 +119,7 @@ export class DatasetsService {
 
     // Convertimos el string 'id' a un ObjectId real para que coincida con la DB
     const images = await this.imageModel.find({
-      dataset_id: id,
+      dataset_id: new Types.ObjectId(id),
     } as any);
 
     return {
@@ -108,7 +128,7 @@ export class DatasetsService {
     };
   }
 
-  async processDataset(file: Express.Multer.File) {
+  async processDataset(file: Express.Multer.File, userId: string) {
     console.log('Service procesando archivo:', file.path);
 
     // 1. Definir rutas
@@ -178,6 +198,25 @@ export class DatasetsService {
           },
         };
       });
+
+      const originalName = file.originalname.replace(/\.[^/.]+$/, ''); // Sin extensión
+      const newDataset = new this.datasetModel({
+        name: originalName,
+        description: `Dataset subido por el usuario ${userId} con ${processedImages.length} imágenes.`,
+        uploaded_by: userId,
+        status: DatasetStatus.PENDING,
+        image_count: processedImages.length,
+      });
+      const savedDataset = await newDataset.save();
+
+      const imagesToInsert = processedImages.map((img) => ({
+        ...img,
+        dataset_id: savedDataset._id, // Vinculamos cada imagen al nuevo dataset
+      }));
+
+      if (imagesToInsert.length > 0) {
+        await this.imageModel.insertMany(imagesToInsert);
+      }
 
       return {
         message: 'Procesamiento exitoso',

@@ -79,6 +79,7 @@ export class DatasetsController {
   }
 
   @Post('upload')
+  @UseGuards(JwtAuthGuard) // Solo usuarios autenticados pueden subir datasets
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -101,11 +102,12 @@ export class DatasetsController {
       },
     }),
   )
-  uploadDataset(@UploadedFile() file: Express.Multer.File) {
+  uploadDataset(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
     if (!file) {
       throw new BadRequestException('No se ha subido ningún archivo');
     }
-    return this.datasetsService.processDataset(file);
+    const userId = req.user.userId;
+    return this.datasetsService.processDataset(file, userId);
   }
 
   @Get()

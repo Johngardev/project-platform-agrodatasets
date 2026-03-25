@@ -19,6 +19,7 @@ export interface Dataset {
   uploaded_by: User; // El populate del backend nos da el objeto completo
   createdAt: string;
   updatedAt: string;
+  last_image_url?: string;
 }
 
 @Injectable({
