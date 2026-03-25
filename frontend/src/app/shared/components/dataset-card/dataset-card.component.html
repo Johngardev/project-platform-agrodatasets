@@ -21,6 +21,13 @@
 			<p class="text-text-muted text-xs">Uploaded by {{ uploader }} • {{ date }}</p>
 		</div>
 
+    <div class="mt-2 mb-1">
+      <span [ngClass]="getStatusClasses(status)"
+      class="px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/10">
+        {{ status }}
+      </span>
+    </div>
+
 		<div class="flex items-center gap-3 text-sm">
 			<div
 				class="flex items-center gap-1.5 text-gray-300 bg-background-dark/50 border border-border-dark px-2 py-1 rounded-lg">

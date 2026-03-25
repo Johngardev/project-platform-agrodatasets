@@ -52,8 +52,14 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (ds of datasets; track ds._id) {
-      <app-dataset-card [id]="ds._id" [title]="ds.name" [uploader]="'ds'" [date]="'2026-02-01'" [year]="'2026'"
-        [imageCount]="ds.image_count + ' imgs'" [imageUrl]="ds.last_image_url ? 'http://localhost:3000/' + ds.last_image_url.split('\\').join('/') : '/assets/avocado-placeholder.jpg'" />
+      <app-dataset-card 
+      [id]="ds._id" 
+      [title]="ds.name" 
+      [uploader]="ds.uploaded_by?.name || ds.uploaded_by?.username || ds.uploaded_by?.email || 'Usuario Desconocido'" 
+      [date]="(ds.createdAt | date:'MMM d, yyyy') || 'Fecha desconocida'" 
+      [year]="(ds.createdAt | date:'yyyy') || 'N/A'"
+      [imageCount]="ds.image_count + ' imgs'" [imageUrl]="ds.last_image_url ? 'http://localhost:3000/' + ds.last_image_url.split('\\').join('/') : '/assets/avocado-placeholder.jpg'"
+      [status]="ds.status" />
       } @empty {
       <p class="text-text-secondary">Cargando datasets...</p>
       }
