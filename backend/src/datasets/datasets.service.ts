@@ -298,4 +298,44 @@ export class DatasetsService {
   remove(id: number) {
     return `This action removes a #${id} dataset`;
   }
+
+  async getStorageStats() {
+    // ⚠️ Ajusta 'uploads' al nombre real de tu carpeta donde guardas las imágenes
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    let usedBytes = 0;
+
+    try {
+      // Función recursiva para sumar el peso de todos los archivos
+      const calculateSize = async (dirPath: string) => {
+        const files = await fs.promises.readdir(dirPath, {
+          withFileTypes: true,
+        });
+        for (const file of files) {
+          const filePath = path.join(dirPath, file.name);
+          if (file.isDirectory()) {
+            await calculateSize(filePath);
+          } else {
+            const stats = await fs.promises.stat(filePath);
+            usedBytes += stats.size;
+          }
+        }
+      };
+
+      await calculateSize(uploadsDir);
+    } catch (error) {
+      console.warn('La carpeta de uploads aún no existe o está vacía.', error);
+      usedBytes = 0;
+    }
+
+    // Definimos la capacidad total de tu servidor (ej. 5 GB para este proyecto)
+    const capacityGB = 5;
+    const totalCapacityBytes = capacityGB * 1024 * 1024 * 1024;
+    const usedPercentage = (usedBytes / totalCapacityBytes) * 100;
+
+    return {
+      usedBytes,
+      totalCapacityBytes,
+      usedPercentage: Math.min(usedPercentage, 100), // Aseguramos que no pase de 100%
+    };
+  }
 }

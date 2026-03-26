@@ -139,4 +139,10 @@ export class DatasetsController {
   remove(@Param('id') id: string) {
     return this.datasetsService.remove(+id);
   }
+
+  @Get('storage-stats')
+  @UseGuards(JwtAuthGuard)
+  async getStorageStats() {
+    return this.datasetsService.getStorageStats();
+  }
 }
