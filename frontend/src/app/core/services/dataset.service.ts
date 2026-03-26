@@ -90,4 +90,13 @@ export class DatasetService {
 
     return this._http.request(req);
   }
+
+  /**
+   * Obtiene las estadísticas de almacenamiento de datasets
+   */
+  getStorageStats() {
+    return this._http.get<{ usedBytes: number, totalCapacityBytes: number, usedPercentage: number }>(
+      `${this.apiUrl}/datasets/storage-stats` // Ajusta la ruta según tu backend
+    );
+  }
 }

@@ -39,6 +39,11 @@ export class ResearchersComponent implements OnInit {
     newThisMonth: 0
   }
 
+  storageStats = {
+    displayValue: '0 B',
+    percentage: 0
+  }
+
   researcherForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -53,6 +58,7 @@ export class ResearchersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadResearchers();
+    this.loadStorageStats();
   }
 
   loadResearchers() {
@@ -225,5 +231,26 @@ export class ResearchersComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadStorageStats() {
+    // Asegúrate de inyectar el servicio correcto donde pusiste el método getStorageStats
+    this.researchersService.getStorageStats().subscribe({
+      next: (data) => {
+        this.storageStats.displayValue = this.formatBytes(data.usedBytes);
+        this.storageStats.percentage = Math.round(data.usedPercentage);
+      },
+      error: (err) => console.error('Error cargando storage', err)
+    });
+  }
+
+  //Método Helper para convertir bytes a KB, MB, GB, TB
+  formatBytes(bytes: number, decimals = 2): string {
+    if (!+bytes) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
   }
 }

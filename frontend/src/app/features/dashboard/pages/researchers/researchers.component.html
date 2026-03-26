@@ -53,12 +53,13 @@
     <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex flex-col justify-between">
       <div>
         <p class="text-text-secondary-dark text-sm font-medium">Platform Storage</p>
-        <h3 class="text-2xl font-display font-bold mt-1">2.4 TB</h3>
+        <h3 class="text-2xl font-display font-bold mt-1">{{ storageStats.displayValue }}</h3>
       </div>
       <div>
-        <p class="text-text-muted text-[10px] mb-1">65% of allocated capacity</p>
+        <p class="text-text-muted text-[10px] mb-1">{{ storageStats.percentage }}% of allocated capacity (5GB)</p>
         <div class="w-full bg-secondary-dark h-1.5 rounded-full overflow-hidden">
-          <div class="bg-primary h-full rounded-full" style="width: 65%"></div>
+          <div class="bg-primary h-full rounded-full transition-all duration-1000" 
+               [style.width.%]="storageStats.percentage"></div>
         </div>
       </div>
     </div>

@@ -49,4 +49,13 @@ export class ResearchersService {
   deleteResearcher(id: string): Observable<any> {
     return this._http.delete(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Obtiene las estadísticas de almacenamiento de datasets
+   */
+  getStorageStats() {
+    return this._http.get<{ usedBytes: number, totalCapacityBytes: number, usedPercentage: number }>(
+      'http://localhost:3000/datasets/storage-stats' // Ajusta la ruta según tu backend
+    );
+  }
 }
