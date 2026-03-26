@@ -1,24 +1,65 @@
 <div class="p-6 md:p-8 flex flex-col gap-10 max-w-[1400px] mx-auto w-full">
 
 	<section class="flex flex-wrap gap-4">
-		<app-stat-card title="Total Uploads" value="24" icon="cloud_upload" trend="+2 this week"
-			trendColorClass="text-primary" />
-		<app-stat-card title="Pending Approval" value="3" icon="pending" iconColorClass="text-yellow-500"
-			trend="Awaiting review" />
-		<app-stat-card title="Approved Datasets" value="21" icon="check_circle" trend="Ready for training" />
+		<app-stat-card 
+      title="Total Uploads" 
+      [value]="stats.total.toString()" 
+      icon="cloud_upload" 
+      trend="Your total contributions"
+      trendColorClass="text-primary" />
+      
+    <app-stat-card 
+      title="Pending Approval" 
+      [value]="stats.pending.toString()" 
+      icon="pending" 
+      iconColorClass="text-yellow-500"
+      trend="Awaiting review" />
+      
+    <app-stat-card 
+      title="Approved Datasets" 
+      [value]="stats.approved.toString()" 
+      icon="check_circle" 
+      trend="Ready for training" />
 	</section>
 
 	<section class="flex flex-col gap-4">
 		<h2 class="text-white text-xl font-bold">My Contributions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      @for (ds of myDatasets; track ds._id) {
+      <app-dataset-card 
+        [id]="ds._id" 
+        [title]="ds.name" 
+        [uploader]="'Me'" 
+        [date]="(ds.createdAt | date:'MMM d, yyyy') || 'Fecha desconocida'" 
+        [year]="(ds.createdAt | date:'yyyy') || 'N/A'"
+        [imageCount]="ds.image_count + ' imgs'" 
+        [imageUrl]="ds.last_image_url ? 'http://localhost:3000/' + ds.last_image_url.split('\\').join('/') : '/assets/avocado-placeholder.jpg'" 
+        [status]="ds.status" />
+      } @empty {
+      <div class="col-span-full py-8 text-center border border-dashed border-border-dark rounded-xl bg-surface-dark/30">
+        <p class="text-text-secondary-dark">No has subido ningún dataset todavía.</p>
+        <button class="mt-2 text-primary hover:underline text-sm font-bold">Upload your first dataset</button>
+      </div>
+      }
+      
+    </div>
 	</section>
 
 	<section class="flex flex-col gap-6">
-		<h2 class="text-white text-xl font-bold">Explore Global Datasets</h2>
+		<h2 class="text-white text-xl font-bold">Explore Global Public Datasets</h2>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			@for (ds of datasets; track ds._id) {
-			<app-dataset-card [id]="ds._id" [title]="ds.name" [uploader]="'AgroUser'" [date]="'2026-02-01'" [year]="'2026'"
-				[imageCount]="ds.image_count + ' imgs'" [imageUrl]="'/assets/avocado-placeholder.jpg'" />
+			@for (ds of publicDatasets; track ds._id) {
+			<app-dataset-card 
+      [id]="ds._id" 
+      [title]="ds.name" 
+      [uploader]="ds.uploaded_by?.name || ds.uploaded_by?.username || ds.uploaded_by?.email || 'Usuario Desconocido'" 
+      [date]="(ds.createdAt | date:'MMM d, yyyy') || 'Fecha desconocida'" 
+      [year]="(ds.createdAt | date:'yyyy') || 'N/A'"
+			[imageCount]="ds.image_count + ' imgs'" [imageUrl]="ds.last_image_url ? 'http://localhost:3000/' + ds.last_image_url.split('\\').join('/') : '/assets/avocado-placeholder.jpg'" 
+      [status]="ds.status"
+      />
 			} @empty {
 			<p class="text-text-secondary">Cargando datasets...</p>
 			}
