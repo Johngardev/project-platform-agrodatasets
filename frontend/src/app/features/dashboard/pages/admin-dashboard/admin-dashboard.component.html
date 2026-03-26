@@ -26,24 +26,26 @@
         <span class="text-sm font-bold text-primary/70 uppercase">Total Pending</span>
         <span class="material-symbols-outlined text-primary">pending_actions</span>
       </div>
-      <span class="text-3xl font-bold text-text-primary-dark">12</span>
-      <p class="text-xs text-text-secondary-dark">+4 since last hour</p>
+      <span class="text-3xl font-bold text-text-primary-dark">{{ stats.pending }}</span>
+      <p class="text-xs text-yellow-500 font-medium">Awaiting your review</p>
     </div>
+
     <div class="bg-surface-dark/30 border border-primary/10 p-6 rounded-xl flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-sm font-bold text-primary/70 uppercase">Datasets Approved Today</span>
+        <span class="text-sm font-bold text-primary/70 uppercase">Total Approved</span>
         <span class="material-symbols-outlined text-primary">verified</span>
       </div>
-      <span class="text-3xl font-bold text-text-primary-dark">48</span>
-      <p class="text-xs text-primary font-bold">↑ 12% vs yesterday</p>
+      <span class="text-3xl font-bold text-text-primary-dark">{{ stats.approved }}</span>
+      <p class="text-xs text-primary font-bold">Ready for AI Training</p>
     </div>
+
     <div class="bg-surface-dark/30 border border-primary/10 p-6 rounded-xl flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-sm font-bold text-primary/70 uppercase">System Health</span>
-        <span class="material-symbols-outlined text-primary">speed</span>
+        <span class="text-sm font-bold text-primary/70 uppercase">Total Images Processed</span>
+        <span class="material-symbols-outlined text-primary">photo_library</span>
       </div>
-      <span class="text-3xl font-bold text-text-primary-dark">99.9%</span>
-      <p class="text-xs text-text-secondary-dark">All systems operational</p>
+      <span class="text-3xl font-bold text-text-primary-dark">{{ stats.totalImages | number }}</span>
+      <p class="text-xs text-text-secondary-dark">Across all datasets</p>
     </div>
   </div>
 
