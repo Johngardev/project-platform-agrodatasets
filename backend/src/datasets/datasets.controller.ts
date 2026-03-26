@@ -110,6 +110,12 @@ export class DatasetsController {
     return this.datasetsService.processDataset(file, userId);
   }
 
+  @Get('storage-stats')
+  //@UseGuards(JwtAuthGuard)
+  async getStorageStats() {
+    return this.datasetsService.getStorageStats();
+  }
+
   @Get()
   findAll(@Query('status') status?: string) {
     // Ejemplo de uso desde Angular: GET /datasets?status=PENDING
@@ -138,11 +144,5 @@ export class DatasetsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.datasetsService.remove(+id);
-  }
-
-  @Get('storage-stats')
-  @UseGuards(JwtAuthGuard)
-  async getStorageStats() {
-    return this.datasetsService.getStorageStats();
   }
 }

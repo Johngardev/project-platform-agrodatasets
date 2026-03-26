@@ -19,7 +19,7 @@ import {
 } from './schemas/dataset.schema';
 import { Image, ImageDocument } from './schemas/image.schema';
 import { CreateImageDto } from './dto/create-image.dto';
-import path from 'path/win32';
+import * as path from 'path';
 import AdmZip from 'adm-zip';
 import * as fs from 'fs';
 import csv from 'csv-parser';
