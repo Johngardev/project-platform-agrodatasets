@@ -18,34 +18,51 @@
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-      <p class="text-text-secondary-dark text-sm font-medium">Total Researchers</p>
-      <h3 class="text-2xl font-display font-bold mt-1">1,284</h3>
+    
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex flex-col justify-between">
+      <div>
+        <p class="text-text-secondary-dark text-sm font-medium">Total Researchers</p>
+        <h3 class="text-2xl font-display font-bold mt-1">{{ stats.total }}</h3>
+      </div>
       <p class="text-primary text-xs font-bold mt-2 flex items-center gap-1">
-        <span class="material-symbols-outlined text-xs">trending_up</span> +12% this month
+        <span class="material-symbols-outlined text-xs">trending_up</span> 
+        +{{ stats.newThisMonth }} registered this month
       </p>
     </div>
-    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-      <p class="text-text-secondary-dark text-sm font-medium">Active Now</p>
-      <h3 class="text-2xl font-display font-bold mt-1">86</h3>
+
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex flex-col justify-between">
+      <div>
+        <p class="text-text-secondary-dark text-sm font-medium">Active Contributors</p>
+        <h3 class="text-2xl font-display font-bold mt-1">{{ stats.contributors }}</h3>
+      </div>
       <p class="text-text-muted text-xs font-medium mt-2 flex items-center gap-1">
-        Across 14 active studies
+        Users with upload permissions
       </p>
     </div>
-    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-      <p class="text-text-secondary-dark text-sm font-medium">Pending Approval</p>
-      <h3 class="text-2xl font-display font-bold mt-1">19</h3>
+
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex flex-col justify-between">
+      <div>
+        <p class="text-text-secondary-dark text-sm font-medium">System Admins</p>
+        <h3 class="text-2xl font-display font-bold mt-1">{{ stats.admins }}</h3>
+      </div>
       <p class="text-yellow-500 text-xs font-bold mt-2 flex items-center gap-1">
-        <span class="material-symbols-outlined text-xs">pending</span> Action required
+        <span class="material-symbols-outlined text-xs">admin_panel_settings</span> Platform moderators
       </p>
     </div>
-    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-      <p class="text-text-secondary-dark text-sm font-medium">Storage Used</p>
-      <h3 class="text-2xl font-display font-bold mt-1">2.4 TB</h3>
-      <div class="w-full bg-secondary-dark h-1.5 rounded-full mt-3 overflow-hidden">
-        <div class="bg-primary h-full rounded-full" style="width: 65%"></div>
+
+    <div class="p-5 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex flex-col justify-between">
+      <div>
+        <p class="text-text-secondary-dark text-sm font-medium">Platform Storage</p>
+        <h3 class="text-2xl font-display font-bold mt-1">2.4 TB</h3>
+      </div>
+      <div>
+        <p class="text-text-muted text-[10px] mb-1">65% of allocated capacity</p>
+        <div class="w-full bg-secondary-dark h-1.5 rounded-full overflow-hidden">
+          <div class="bg-primary h-full rounded-full" style="width: 65%"></div>
+        </div>
       </div>
     </div>
+
   </div>
 
   <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-sm">

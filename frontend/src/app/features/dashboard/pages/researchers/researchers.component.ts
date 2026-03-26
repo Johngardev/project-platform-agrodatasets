@@ -32,6 +32,13 @@ export class ResearchersComponent implements OnInit {
 
   researchersList: UserDocument[] = [];
 
+  stats = {
+    total: 0,
+    contributors: 0,
+    admins: 0,
+    newThisMonth: 0
+  }
+
   researcherForm = new FormGroup({
     name: new FormControl('', [Validators.required]),
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -52,6 +59,7 @@ export class ResearchersComponent implements OnInit {
     this.researchersService.getResearchers().subscribe({
       next: (data) => {
         this.researchersList = data;
+        this.calculateStats();
       },
       error: (err) => {
         console.error('Error fetching researchers:', err);
@@ -101,6 +109,26 @@ export class ResearchersComponent implements OnInit {
       role: 'USER',
       userType: 'CONTRIBUTOR'
     });
+  }
+
+  calculateStats() {
+    this.stats.total = this.researchersList.length;
+    
+    // Contamos cuántos tienen permiso para subir datos
+    this.stats.contributors = this.researchersList.filter(u => u.userType === 'CONTRIBUTOR').length;
+    
+    // Contamos cuántos son administradores
+    this.stats.admins = this.researchersList.filter(u => u.role === 'ADMIN').length;
+
+    // Calculamos cuántos se registraron este mes
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    this.stats.newThisMonth = this.researchersList.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    }).length;
   }
 
   onSubmit() {
