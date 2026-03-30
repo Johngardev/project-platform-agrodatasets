@@ -38,7 +38,7 @@
         [status]="ds.status" />
       } @empty {
       <div class="col-span-full py-8 text-center border border-dashed border-border-dark rounded-xl bg-surface-dark/30">
-        <p class="text-text-secondary-dark">No has subido ningún dataset todavía.</p>
+        <p class="text-text-secondary-dark">You haven't uploaded any datasets yet.</p>
         <button class="mt-2 text-primary hover:underline text-sm font-bold">Upload your first dataset</button>
       </div>
       }
@@ -61,7 +61,7 @@
       [status]="ds.status"
       />
 			} @empty {
-			<p class="text-text-secondary">Cargando datasets...</p>
+			<p class="text-text-secondary">Loading datasets...</p>
 			}
 		</div>
 	</section>
