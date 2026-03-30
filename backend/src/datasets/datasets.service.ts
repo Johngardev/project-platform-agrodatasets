@@ -212,9 +212,15 @@ export class DatasetsService {
       });
 
       const originalName = file.originalname.replace(/\.[^/.]+$/, ''); // Sin extensión
+      const user = await this.datasetModel.findOne(
+        { _id: userId },
+        { name: 1 },
+      );
+      const userName = user?.name || 'usuario desconocido';
+
       const newDataset = new this.datasetModel({
         name: originalName,
-        description: `Dataset subido por el usuario ${userId} con ${processedImages.length} imágenes.`,
+        description: `Dataset subido por ${userName} con ${processedImages.length} imágenes.`,
         uploaded_by: userId,
         status: DatasetStatus.PENDING,
         image_count: processedImages.length,
