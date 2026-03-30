@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
@@ -24,6 +27,7 @@ import AdmZip from 'adm-zip';
 import * as fs from 'fs';
 import csv from 'csv-parser';
 import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
+import { Readable } from 'stream';
 
 @Injectable()
 export class DatasetsService {
@@ -161,40 +165,48 @@ export class DatasetsService {
       }
 
       // 6. Fusionar Imágenes con sus Anotaciones y Mapear al Esquema
-      const processedImages = imageFiles.map((fileName) => {
-        // Obtenemos la fila del CSV correspondiente (o un objeto vacío si no existe)
-        const csvRow = annotations[fileName] || {};
+      const processedImages = imageFiles.map((osFileName) => {
+        // 1. Limpiamos el nombre del archivo que viene de Windows/OS
+        const cleanFileName = osFileName.replace(/[^a-zA-Z0-9.\-_]/g, '');
 
-        // RUTA RELATIVA: "uploads/extracted/dataset-xyz/archivo.jpg"
-        // Asegúrate de que esta ruta sea accesible públicamente o úsala solo internamente
+        // 2. Ahora sí lo buscamos en el diccionario limpio
+        const csvRow = annotations[cleanFileName] || {};
+
         const relativePath = path.join(
           'uploads',
           'extracted',
           file.filename.replace(/\.[^/.]+$/, ''),
-          fileName,
+          osFileName,
         );
 
-        // CONSTRUCCIÓN DEL OBJETO SEGÚN EL ESQUEMA 'Image'
+        let parsedAnnotations = [];
+        if (csvRow.annotations_json) {
+          try {
+            const match = csvRow.annotations_json.match(/\[.*\]/);
+            if (match) {
+              let cleanJson = match[0].replace(/\\*"+/g, '"');
+              cleanJson = cleanJson.replace(/([a-zA-Z])"([a-zA-Z])/g, '$1 $2');
+              parsedAnnotations = JSON.parse(cleanJson);
+            }
+          } catch (error) {
+            console.error(`Error al parsear JSON de ${cleanFileName}.`);
+          }
+        }
+
         return {
-          file_name: fileName,
-          storage_url: relativePath, // Campo 'storage_url' del esquema
+          file_name: cleanFileName, // Usamos el nombre limpio
+          storage_url: relativePath,
           metadata: {
             width: Number(csvRow.width) || 0,
             height: Number(csvRow.height) || 0,
-            ripeness_degree: csvRow.ripeness_degree || 'Unknown',
-
-            // Reconstruimos el objeto anidado 'spectral_values'
+            ripeness_degree: csvRow.ripeness_degree?.toString() || 'Unknown',
             spectral_values: {
               r: Number(csvRow.spectral_r) || 0,
               g: Number(csvRow.spectral_g) || 0,
               b: Number(csvRow.spectral_b) || 0,
               nir: Number(csvRow.spectral_nir) || 0,
             },
-
-            // Intentamos parsear las anotaciones si vienen como JSON string, sino array vacío
-            annotations: csvRow.annotations_json
-              ? JSON.parse(csvRow.annotations_json)
-              : [],
+            annotations: parsedAnnotations,
           },
         };
       });
@@ -230,34 +242,53 @@ export class DatasetsService {
     }
   }
 
-  // --- Helper para leer CSV como Promesa ---
+  // --- Helper para leer CSV (VERSIÓN BLINDADA CON REGEX) ---
   private parseCsv(filePath: string): Promise<Record<string, any>> {
     return new Promise((resolve, reject) => {
       const results: Record<string, any> = {};
 
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on('data', (data) => {
-          // AQUÍ ESTA EL TRUCO:
-          // Necesitamos saber cuál columna del CSV tiene el nombre de la imagen.
-          // Por defecto intentamos buscar 'filename', 'image', 'id', o usamos la primera columna.
+      try {
+        const rawContent = fs.readFileSync(filePath, 'utf-8');
+        const lines = rawContent
+          .split(/\r?\n/)
+          .filter((line) => line.trim().length > 0);
 
-          const keys = Object.keys(data);
-          // Buscamos una columna que parezca nombre de archivo (termina en .jpg)
-          const filenameKey =
-            keys.find((k) => data[k].toString().match(/\.(jpg|png)$/i)) ||
-            keys[0];
+        if (lines.length < 2) return resolve(results);
 
-          const fileName = data[filenameKey];
+        for (let i = 1; i < lines.length; i++) {
+          let line = lines[i].trim();
 
-          if (fileName) {
-            results[fileName] = data; // Guardamos toda la fila usando el nombre como clave
-          }
-        })
-        .on('end', () => {
-          resolve(results);
-        })
-        .on('error', (err) => reject(err));
+          // 1. Quitamos TODAS las comillas que envuelvan el inicio o el final
+          line = line.replace(/^"+|"+$/g, '');
+
+          // 2. Cortamos por comas
+          const parts = line.split(',');
+          if (parts.length < 8) continue;
+
+          // 3. LIMPIEZA EXTREMA DEL NOMBRE DEL ARCHIVO:
+          // Esto elimina cualquier caracter invisible, espacio o comilla.
+          // Solo deja letras, números, puntos, guiones y guiones bajos.
+          const rawFileName = parts[0];
+          const fileName = rawFileName.replace(/[^a-zA-Z0-9.\-_]/g, '');
+
+          const jsonPart = parts.slice(8).join(',');
+
+          results[fileName] = {
+            width: parts[2].trim(),
+            height: parts[3].trim(),
+            ripeness_degree: parts[1].trim(),
+            spectral_r: parts[4].trim(),
+            spectral_g: parts[5].trim(),
+            spectral_b: parts[6].trim(),
+            spectral_nir: parts[7].trim(),
+            annotations_json: jsonPart,
+          };
+        }
+
+        resolve(results);
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
@@ -300,7 +331,7 @@ export class DatasetsService {
   }
 
   async getStorageStats() {
-    // ⚠️ Ajusta 'uploads' al nombre real de tu carpeta donde guardas las imágenes
+    // Ajusta 'uploads' al nombre real de tu carpeta donde guardas las imágenes
     const uploadsDir = path.join(process.cwd(), 'uploads');
     let usedBytes = 0;
 

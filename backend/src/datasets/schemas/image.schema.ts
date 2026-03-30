@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Dataset } from './dataset.schema';
@@ -13,6 +11,7 @@ export type ImageDocument = Image & Document;
  * de cálculo de índices de vegetación (como NDVI) sin procesar la imagen completa.
  * El NIR es crítico para evaluar la salud celular del aguacate antes de que sea visible al ojo humano.
  */
+@Schema({ _id: false }) // No necesitamos un _id para este sub-esquema
 class SpectralValues {
   @Prop({ required: true })
   r: number; // Valor promedio Red (0-255)
@@ -27,6 +26,10 @@ class SpectralValues {
   nir: number; // Near Infrared (Infrarrojo Cercano) - Clave para salud vegetal
 }
 
+export const SpectralValuesSchema =
+  SchemaFactory.createForClass(SpectralValues);
+
+@Schema({ _id: false }) // No necesitamos un _id para este sub-esquema
 class ImageMetadata {
   @Prop()
   width: number;
@@ -40,14 +43,14 @@ class ImageMetadata {
   ripeness_degree: string;
 
   // Datos espectrales anidados
-  @Prop({ type: SpectralValues, _id: false })
+  @Prop({ type: SpectralValues, default: () => ({}) })
   spectral_values: SpectralValues;
 
-  // Anotaciones (Formato COCO simplificado)
-  // Usamos 'Mixed' o 'Object' porque las anotaciones pueden ser complejas
-  @Prop({ type: [Object], default: [] })
-  annotations: Record<string, any>[];
+  @Prop({ type: [], default: [] })
+  annotations: any[];
 }
+
+export const ImageMetadataSchema = SchemaFactory.createForClass(ImageMetadata);
 
 /**
  * Entidad que representa una imagen capturada dentro de un Dataset.
@@ -55,8 +58,6 @@ class ImageMetadata {
  * Se utiliza una estructura anidada para 'metadata' para agrupar atributos técnicos
  * y biológicos (maduración), manteniendo la raíz del documento limpia para
  * operaciones de infraestructura (URLs, nombres de archivo).
- * * El campo 'annotations' sigue un formato flexible (tipo COCO) para permitir
- * futuras iteraciones en los modelos de Machine Learning sin migrar la base de datos.
  */
 @Schema({ timestamps: true })
 export class Image {
@@ -76,7 +77,7 @@ export class Image {
   storage_url: string;
 
   // Contenedor de toda la información técnica
-  @Prop({ type: ImageMetadata, _id: false })
+  @Prop({ type: ImageMetadataSchema, default: () => ({}) })
   metadata: ImageMetadata;
 }
 
