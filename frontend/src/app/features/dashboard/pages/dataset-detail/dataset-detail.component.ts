@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 export class DatasetDetailComponent {
   @Input() id!: string;
   private _datasetService = inject(DatasetService);
+  isDownloading = false;
 
   data = signal<{ dataset: any, images: any[] } | null>(null);
 
@@ -87,6 +88,38 @@ export class DatasetDetailComponent {
       }
     });
   }
+
+  triggerDownload(id: string, datasetName: string) {
+      this.isDownloading = true;
+      
+      // Opcional: Mostrar un Toast de carga con SweetAlert2
+      Swal.fire({
+        title: 'You download is being prepared',
+        text: 'Compressing images and metadata...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+  
+      this._datasetService.downloadDatasetZip(id).subscribe({
+        next: (blob) => {
+          // Magia para descargar archivos en Angular
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${datasetName.replace(/\s+/g, '_')}.zip`;
+          a.click(); // Simulamos un clic
+          window.URL.revokeObjectURL(url); // Limpiamos memoria
+          
+          this.isDownloading = false;
+          Swal.close();
+        },
+        error: (err) => {
+          console.error('Error descargando', err);
+          this.isDownloading = false;
+          Swal.fire('Error', 'There was an error downloading the dataset.', 'error');
+        }
+      });
+    }
 
   openUploadModal() {
     this.isUploadModalOpen = true;

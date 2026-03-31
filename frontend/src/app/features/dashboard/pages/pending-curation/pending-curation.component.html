@@ -28,7 +28,8 @@
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Images</th>
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Upload Date</th>
             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark">Researcher</th>
-            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark text-right">Actions</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-secondary-dark text-right">Actions
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-dark">
@@ -41,7 +42,8 @@
                   class="material-symbols-outlined text-primary/80 group-hover:text-primary transition-colors">folder_zip</span>
                 <div class="flex flex-col">
                   <span class="text-sm font-bold">{{ dataset.name }}</span>
-                  <span class="text-[10px] text-text-secondary-dark uppercase tracking-wider">{{ dataset.crop_type }}</span>
+                  <span class="text-[10px] text-text-secondary-dark uppercase tracking-wider">{{ dataset.crop_type
+                    }}</span>
                 </div>
               </div>
             </td>
@@ -67,7 +69,7 @@
                   title="Preview Random Sample">
                   <span class="material-symbols-outlined text-lg">visibility</span>
                 </button>
-                <button
+                <button (click)="triggerDownload(dataset._id, dataset.name)"
                   class="p-2 rounded-lg bg-secondary-dark text-text-muted hover:text-white hover:border-border-dark border border-transparent transition-all"
                   title="Download ZIP">
                   <span class="material-symbols-outlined text-lg">download</span>
@@ -107,7 +109,8 @@
         <span class="material-symbols-outlined text-primary">history</span>
         Recently Processed
       </h2>
-      <button class="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">View All History</button>
+      <button class="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">View All
+        History</button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

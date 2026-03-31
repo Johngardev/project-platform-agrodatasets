@@ -33,6 +33,8 @@ export interface DatasetDocument {
 export class PendingCurationComponent {
   private _datasetService = inject(DatasetService);
 
+  isDownloading = false;
+
   allDatasets = signal<Dataset[]>([]);
 
   pendingDatasets = computed(() => this.allDatasets().filter(d => d.status === 'PENDING'));
@@ -152,4 +154,36 @@ export class PendingCurationComponent {
     
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   } 
+
+  triggerDownload(id: string, datasetName: string) {
+    this.isDownloading = true;
+    
+    // Opcional: Mostrar un Toast de carga con SweetAlert2
+    Swal.fire({
+      title: 'You download is being prepared',
+      text: 'Compressing images and metadata...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this._datasetService.downloadDatasetZip(id).subscribe({
+      next: (blob) => {
+        // Magia para descargar archivos en Angular
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${datasetName.replace(/\s+/g, '_')}.zip`;
+        a.click(); // Simulamos un clic
+        window.URL.revokeObjectURL(url); // Limpiamos memoria
+        
+        this.isDownloading = false;
+        Swal.close();
+      },
+      error: (err) => {
+        console.error('Error descargando', err);
+        this.isDownloading = false;
+        Swal.fire('Error', 'There was an error downloading the dataset.', 'error');
+      }
+    });
+  }
 }

@@ -25,10 +25,12 @@
           <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
           Add Image
         </button>
-        <button
-          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark hover:border-primary/50 hover:text-primary transition-all text-white text-sm font-medium shadow-sm">
-          <span class="material-symbols-outlined text-[20px]">download</span>
-          Download dataset
+        <button (click)="triggerDownload(data()?.dataset?._id, data()?.dataset?.name)" [disabled]="isDownloading"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark hover:border-primary/50 hover:text-primary transition-all text-white text-sm font-medium shadow-sm disabled:opacity-50">
+          <span class="material-symbols-outlined text-[20px]">
+            {{ isDownloading ? 'hourglass_empty' : 'download' }}
+          </span>
+          {{ isDownloading ? 'Downloading...' : 'Download dataset' }}
         </button>
         <button
           class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-dark border border-border-dark hover:border-primary/50 hover:text-primary transition-all text-white text-sm font-medium shadow-sm">

@@ -99,4 +99,13 @@ export class DatasetService {
       `${this.apiUrl}/datasets/storage-stats` // Ajusta la ruta según tu backend
     );
   }
+
+  /**
+   *  Desacargar un dataset completo como un archivo .zip
+   */
+  downloadDatasetZip(datasetId: string) {
+    return this._http.get(`${this.apiUrl}/${datasetId}/download`, {
+      responseType: 'blob'
+    });
+  }
 }
