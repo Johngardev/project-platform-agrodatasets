@@ -381,7 +381,13 @@ export class DatasetsService {
     const dataset = await this.datasetModel.findById(id);
     if (!dataset) throw new Error('Dataset not found');
 
-    const images = await this.imageModel.find({ dataset_id: id } as any);
+    const images = await this.imageModel.find({
+      dataset_id: new Types.ObjectId(id),
+    } as any);
+
+    console.log(
+      `Generando ZIP para dataset "${dataset.name}" con ${images.length} imágenes...`,
+    );
 
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader(
@@ -405,20 +411,25 @@ export class DatasetsService {
 
     // 2. Iteramos las imágenes
     images.forEach((img) => {
-      // Agregamos la imagen física al ZIP (en una subcarpeta "images/")
-      const filePath = path.join(process.cwd(), img.storage_url);
+      // 2. SEGURIDAD DE RUTAS: Limpiamos barras iniciales por si acaso
+      const safeUrl = img.storage_url.replace(/^[\\/]+/, '');
+      const filePath = path.join(process.cwd(), safeUrl);
+
       if (fs.existsSync(filePath)) {
+        // Si el archivo físico existe, lo mete al ZIP en la carpeta 'images/'
         archive.file(filePath, { name: `images/${img.file_name}` });
+      } else {
+        console.warn(
+          `Archivo físico no encontrado para comprimir: ${filePath}`,
+        );
       }
 
-      // 3. Agregamos los datos al CSV
-      const meta = img.metadata;
-      // Escapamos el JSON para que el CSV no se rompa
+      const meta = img.metadata || ({} as any);
       const annotations = meta.annotations
         ? JSON.stringify(meta.annotations).replace(/"/g, '""')
         : '[]';
 
-      csvContent += `"${img.file_name}",${meta.width},${meta.height},"${meta.ripeness_degree}",${meta.spectral_values?.r || 0},${meta.spectral_values?.g || 0},${meta.spectral_values?.b || 0},${meta.spectral_values?.nir || 0},"${annotations}"\n`;
+      csvContent += `"${img.file_name}",${meta.width || 0},${meta.height || 0},"${meta.ripeness_degree || 'Unknown'}",${meta.spectral_values?.r || 0},${meta.spectral_values?.g || 0},${meta.spectral_values?.b || 0},${meta.spectral_values?.nir || 0},"${annotations}"\n`;
     });
 
     // 4. Adjuntamos el CSV generado al archivo ZIP
