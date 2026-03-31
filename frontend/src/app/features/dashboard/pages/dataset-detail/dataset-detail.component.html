@@ -45,11 +45,11 @@
         <label
           class="flex w-full items-center h-10 rounded-lg bg-surface-dark border border-border-dark focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all overflow-hidden">
           <div class="text-text-muted flex items-center justify-center pl-3 pr-2">
-            <span class="material-symbols-outlined text-[20px]">search</span>
+            <span class="material-symbols-outlined text-[20px]">Search</span>
           </div>
-          <input
+          <input (input)="onSearchInput($event)"
             class="w-full bg-transparent border-none text-white placeholder:text-text-muted text-sm focus:outline-none h-full py-0"
-            placeholder="Buscar imagen por ID..." />
+            placeholder="Search images..." />
         </label>
       </div>
 
@@ -89,7 +89,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 pb-10">
 
-      @for (img of data()?.images; track img._id) {
+      @for (img of filteredImages(); track img._id) {
       <div
         class="group relative flex flex-col rounded-xl bg-surface-dark border border-border-dark overflow-hidden hover:border-primary/60 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
 
@@ -139,6 +139,12 @@
             </span>
           </div>
         </div>
+      </div>
+      }
+      @if (filteredImages().length === 0 && data()?.images?.length! > 0) {
+      <div class="col-span-full text-center py-10 text-text-muted">
+        <span class="material-symbols-outlined text-4xl mb-2 opacity-50">search_off</span>
+        <p>Don't find images for "{{ searchQuery() }}"</p>
       </div>
       }
     </div>

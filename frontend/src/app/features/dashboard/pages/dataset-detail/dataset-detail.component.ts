@@ -1,4 +1,4 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, computed, inject, Input, signal } from '@angular/core';
 import { DatasetService } from '../../../../core/services/dataset.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -17,6 +17,20 @@ export class DatasetDetailComponent {
 
   data = signal<{ dataset: any, images: any[] } | null>(null);
 
+  searchQuery = signal<string>('');
+
+  filteredImages = computed(() => {
+    const currentData = this.data();
+    const query = this.searchQuery().toLowerCase().trim();
+
+    if (!currentData || !currentData.images) return [];
+
+    return currentData.images.filter(img => 
+    (img.metadata?.ripeness_degree || 'N/A').toLowerCase().includes(query) || 
+    (img.file_name && img.file_name.toLowerCase().includes(query))
+    );
+  });
+
   selectedFile: File | null = null;
   isUploadModalOpen = false;
 
@@ -24,11 +38,15 @@ export class DatasetDetailComponent {
     this.fetchData();
   }
 
+  onSearchInput(event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    this.searchQuery.set(inputElement.value);
+  }
+
   fetchData() {
     if (this.id) {
       this._datasetService.getDatasetById(this.id).subscribe({
         next: (response) => {
-          console.log('Datos recibidos:', response);
           this.data.set(response);
         },
         error: (err) => console.error('Error cargando detalle:', err)
