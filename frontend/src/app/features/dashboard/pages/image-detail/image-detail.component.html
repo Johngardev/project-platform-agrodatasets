@@ -54,7 +54,8 @@
       </button>
 
       @if (image()) {
-      <div class="relative transition-transform duration-200 ease-out scale-100 origin-center shadow-2xl max-w-[80%] max-h-[80%]">
+      <div class="relative transition-transform duration-200 ease-out origin-center shadow-2xl max-w-[80%] max-h-[80%]"
+           [style.transform]="'scale(' + zoomLevel() + ')'">
         <img [src]="getImageUrl()" 
              [alt]="image().file_name" 
              class="w-full h-full object-contain rounded-sm select-none" draggable="false"/>
@@ -65,15 +66,20 @@
            <p>Cargando imagen...</p>
         </div>
       }
-      <!--
-      // Controles de zoom y enfoque
+
       <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-[#111722]/90 backdrop-blur border border-[#232f48] rounded-full p-2 flex gap-1 shadow-xl z-40">
-        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">add</span></button>
-        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">remove</span></button>
+        <button (click)="zoomIn()" class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors" title="Acercar">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+        <button (click)="zoomOut()" class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors" title="Alejar">
+          <span class="material-symbols-outlined">remove</span>
+        </button>
         <div class="w-px h-6 bg-[#232f48] self-center mx-1"></div>
-        <button class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors"><span class="material-symbols-outlined">center_focus_strong</span></button>
+        <button (click)="resetZoom()" class="size-10 flex items-center justify-center rounded-full text-white hover:bg-[#232f48] transition-colors" title="Restablecer enfoque">
+          <span class="material-symbols-outlined">center_focus_strong</span>
+        </button>
       </div>
-      -->
+
     </main>
 
     <aside class="w-80 flex-none bg-[#111722] border-l border-[#232f48] flex flex-col z-10">

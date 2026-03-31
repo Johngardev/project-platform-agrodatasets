@@ -23,9 +23,14 @@ export class ImageDetailComponent implements OnInit {
   dataset = signal<any>(null);
   imagesList = signal<any[]>([]);
   currentIndex = signal<number>(0);
+  zoomLevel = signal<number>(1);
 
   canGoPrevious = computed(() => this.currentIndex() > 0);
   canGoNext = computed(() => this.currentIndex() < this.imagesList().length - 1);
+
+  readonly ZOOM_STEP = 0.25;
+  readonly MAX_ZOOM = 4;
+  readonly MIN_ZOOM = 0.25;
 
   ngOnInit() {
     // IMPORTANTE: Usamos subscribe en lugar de snapshot. 
@@ -68,6 +73,7 @@ export class ImageDetailComponent implements OnInit {
     if (index !== -1) {
       this.currentIndex.set(index);
       this.image.set(list[index]);
+      this.resetZoom();
     }
   }
 
@@ -101,6 +107,18 @@ export class ImageDetailComponent implements OnInit {
     const imgData = this.image();
     if (!imgData || !imgData.metadata) return '{}';
     return JSON.stringify(imgData.metadata, null, 2);
+  }
+
+  zoomIn() {
+    this.zoomLevel.update(z => Math.min(z + this.ZOOM_STEP, this.MAX_ZOOM));
+  }
+
+  zoomOut() {
+    this.zoomLevel.update(z => Math.max(z - this.ZOOM_STEP, this.MIN_ZOOM));
+  }
+
+  resetZoom() {
+    this.zoomLevel.set(1);
   }
 
 }
