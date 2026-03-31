@@ -27,7 +27,8 @@ import AdmZip from 'adm-zip';
 import * as fs from 'fs';
 import csv from 'csv-parser';
 import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
-import { Readable } from 'stream';
+import archiver from 'archiver';
+import { Response } from 'express';
 
 @Injectable()
 export class DatasetsService {
@@ -374,5 +375,56 @@ export class DatasetsService {
       totalCapacityBytes,
       usedPercentage: Math.min(usedPercentage, 100), // Aseguramos que no pase de 100%
     };
+  }
+
+  async downloadDatasetZip(id: string, res: Response) {
+    const dataset = await this.datasetModel.findById(id);
+    if (!dataset) throw new Error('Dataset not found');
+
+    const images = await this.imageModel.find({ dataset_id: id } as any);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="dataset-${dataset.name.replace(/\s+/g, '_')}.zip"`,
+    );
+
+    // Iniciamos el compresor
+    const archive = archiver('zip', { zlib: { level: 9 } }); // Nivel de compresión máximo
+
+    archive.on('error', (err) => {
+      throw err;
+    });
+
+    // Conectamos el archivo ZIP directamente a la respuesta HTTP
+    archive.pipe(res);
+
+    // 1. Preparamos el encabezado del CSV
+    let csvContent =
+      'filename,width,height,ripeness_degree,spectral_r,spectral_g,spectral_b,spectral_nir,annotations_json\n';
+
+    // 2. Iteramos las imágenes
+    images.forEach((img) => {
+      // Agregamos la imagen física al ZIP (en una subcarpeta "images/")
+      const filePath = path.join(process.cwd(), img.storage_url);
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: `images/${img.file_name}` });
+      }
+
+      // 3. Agregamos los datos al CSV
+      const meta = img.metadata;
+      // Escapamos el JSON para que el CSV no se rompa
+      const annotations = meta.annotations
+        ? JSON.stringify(meta.annotations).replace(/"/g, '""')
+        : '[]';
+
+      csvContent += `"${img.file_name}",${meta.width},${meta.height},"${meta.ripeness_degree}",${meta.spectral_values?.r || 0},${meta.spectral_values?.g || 0},${meta.spectral_values?.b || 0},${meta.spectral_values?.nir || 0},"${annotations}"\n`;
+    });
+
+    // 4. Adjuntamos el CSV generado al archivo ZIP
+    archive.append(csvContent, { name: 'metadata.csv' });
+
+    // Cerramos y enviamos
+    await archive.finalize();
   }
 }

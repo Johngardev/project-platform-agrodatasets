@@ -15,7 +15,9 @@ import {
   UploadedFile,
   BadRequestException,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { DatasetsService } from './datasets.service';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
@@ -144,5 +146,20 @@ export class DatasetsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.datasetsService.remove(+id);
+  }
+
+  @Get(':id/download')
+  async downloadDataset(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      await this.datasetsService.downloadDatasetZip(id, res);
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error al generar el archivo ZIP',
+        error: error.message,
+      });
+    }
   }
 }
