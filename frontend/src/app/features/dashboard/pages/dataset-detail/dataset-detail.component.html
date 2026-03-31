@@ -65,8 +65,8 @@
         <div class="relative">
           <select
             class="appearance-none bg-surface-dark border border-border-dark hover:border-primary/50 text-white text-sm rounded-lg focus:ring-primary focus:border-primary block w-40 pl-3 pr-10 h-9 cursor-pointer transition-colors">
-            <option>Más recientes</option>
-            <option>Más antiguas</option>
+            <option>Most Recent</option>
+            <option>Most Older</option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-muted">
             <span class="material-symbols-outlined text-[20px]">expand_more</span>
@@ -82,8 +82,8 @@
     <div
       class="flex flex-col items-center justify-center h-64 mt-10 text-text-muted border border-dashed border-border-dark rounded-xl bg-surface-dark/30">
       <span class="material-symbols-outlined text-5xl mb-3 opacity-40">add_a_photo</span>
-      <p class="text-lg font-medium">Este dataset está vacío</p>
-      <p class="text-sm opacity-70">Usa el botón "Upload Data" para comenzar</p>
+      <p class="text-lg font-medium">This datset is empty</p>
+      <p class="text-sm opacity-70">Use the "Upload Data" button to get started</p>
     </div>
     }
 
@@ -130,7 +130,7 @@
           <div class="flex flex-wrap gap-2 mt-1">
             <span
               class="inline-flex items-center rounded bg-primary/10 border border-primary/20 px-2 py-1 text-xs font-medium text-primary">
-              {{ img.metadata?.ripeness_degree || 'N/A' }}
+              Ripeness degre: {{ img.metadata?.ripeness_degree || 'N/A' }}
             </span>
 
             <span
