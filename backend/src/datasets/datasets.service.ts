@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -29,6 +30,7 @@ import csv from 'csv-parser';
 import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
 import archiver from 'archiver';
 import { Response } from 'express';
+import exifr from 'exifr';
 
 @Injectable()
 export class DatasetsService {
@@ -166,7 +168,7 @@ export class DatasetsService {
       }
 
       // 6. Fusionar Imágenes con sus Anotaciones y Mapear al Esquema
-      const processedImages = imageFiles.map((osFileName) => {
+      const processedImages = imageFiles.map(async (osFileName) => {
         // 1. Limpiamos el nombre del archivo que viene de Windows/OS
         const cleanFileName = osFileName.replace(/[^a-zA-Z0-9.\-_]/g, '');
 
@@ -180,6 +182,30 @@ export class DatasetsService {
           osFileName,
         );
 
+        const absolutePath = path.join(extractPath, osFileName); // Ruta física completa para leer el EXIF
+
+        // ==========================================
+        // ESTRATEGIA EXIF (Requisito RF-010)
+        // ==========================================
+        let captureDate = new Date();
+        let hasOriginalExif = false;
+
+        try {
+          const exifData = await exifr.parse(absolutePath);
+
+          if (exifData && (exifData.DateTimeOriginal || exifData.CreateDate)) {
+            captureDate = exifData.DateTimeOriginal || exifData.CreateDate;
+            hasOriginalExif = true;
+          } else {
+            // FALLBACK: Si no hay EXIF, usamos la fecha de creación del archivo en disco
+            const stats = fs.statSync(absolutePath);
+            captureDate = stats.birthtime || stats.mtime;
+          }
+        } catch (error) {
+          const stats = fs.statSync(absolutePath);
+          captureDate = stats.birthtime || stats.mtime;
+        }
+        // ==========================================
         let parsedAnnotations = [];
         if (csvRow.annotations_json) {
           try {
@@ -201,6 +227,8 @@ export class DatasetsService {
             width: Number(csvRow.width) || 0,
             height: Number(csvRow.height) || 0,
             ripeness_degree: csvRow.ripeness_degree?.toString() || 'Unknown',
+            captureDate: captureDate,
+            hasOriginalExif: hasOriginalExif,
             spectral_values: {
               r: Number(csvRow.spectral_r) || 0,
               g: Number(csvRow.spectral_g) || 0,
@@ -228,7 +256,9 @@ export class DatasetsService {
       });
       const savedDataset = await newDataset.save();
 
-      const imagesToInsert = processedImages.map((img) => ({
+      const resolvedImages = await Promise.all(processedImages);
+
+      const imagesToInsert = resolvedImages.map((img) => ({
         ...img,
         dataset_id: savedDataset._id, // Vinculamos cada imagen al nuevo dataset
       }));
@@ -237,10 +267,15 @@ export class DatasetsService {
         await this.imageModel.insertMany(imagesToInsert);
       }
 
+      const missingExifCount = resolvedImages.filter(
+        (img) => !img.metadata.hasOriginalExif,
+      ).length;
+
       return {
         message: 'Procesamiento exitoso',
         totalImages: processedImages.length,
         hasAnnotations: !!csvFile,
+        missingExifCount: missingExifCount,
         preview: processedImages.slice(0, 3), // Devolvemos los primeros 3 al frontend
       };
     } catch (error) {

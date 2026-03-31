@@ -42,6 +42,12 @@ class ImageMetadata {
   @Prop({ required: true })
   ripeness_degree: string;
 
+  @Prop({ type: Date, default: null })
+  capture_date: Date;
+
+  @Prop({ type: Boolean, default: false })
+  has_original_exif: boolean;
+
   // Datos espectrales anidados
   @Prop({ type: SpectralValues, default: () => ({}) })
   spectral_values: SpectralValues;
