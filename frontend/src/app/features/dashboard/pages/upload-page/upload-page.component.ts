@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HttpEventType } from '@angular/common/http';
 import { DatasetService } from '../../../../core/services/dataset.service';
+import Swal from 'sweetalert2';
 
 interface LogEntry {
   timestamp: Date;
@@ -76,8 +77,11 @@ export class UploadPageComponent {
     this.addLog('System: Initializing secure upload connection...');
     this.currentStep.set(1); // Paso 1: Integridad (Check local)
 
+    // Variable auxiliar para evitar que los logs de red se impriman repetidamente
+    let networkLogPrinted = false;
+
     this._datasetService.uploadDatasetZip(file).subscribe({
-      next: (event) => {
+      next: (event: any) => {
         // 1. Evento de Progreso de Subida
         if (event.type === HttpEventType.UploadProgress) {
           if (event.total) {
@@ -91,20 +95,56 @@ export class UploadPageComponent {
               this.addLog('Integrity: Client-side validation passed');
               this.currentStep.set(2); // Paso 2: Subiendo/Descomprimiendo
             }
-            if (percent > 90) {
+            if (percent > 90 && !networkLogPrinted) {
+              networkLogPrinted = true; // Evitamos que se imprima 10 veces en el 91%, 92%, etc.
               this.addLog('Network: File transmission complete');
-              this.addLog('Server: Verifying magic numbers...');
+              this.addLog('Server: Verifying magic numbers and EXIF data...');
             }
           }
         } 
         
-        // 2. Evento de Respuesta Final (Cuando el servidor responde 201 Created)
+        // 2. Evento de Respuesta Final (Cuando el servidor responde con los datos procesados)
         else if (event.type === HttpEventType.Response) {
           this.progress.set(100);
           this.currentStep.set(3); // Paso 3: Verificación
           
-          this.addLog(`Server: ${event.body.message}`);
-          this.addLog(`Storage: Saved as ${event.body.filename}`);
+          const response = event.body;
+          
+          this.addLog(`Server: ${response.message || 'Dataset processed'}`);
+          this.addLog(`Storage: Processed ${response.totalImages || 0} images successfully.`);
+          
+          // ==========================================
+          // INTEGRACIÓN RF-010: REPORTAR ESTADO EXIF
+          // ==========================================
+          if (response.missingExifCount && response.missingExifCount > 0) {
+            // Imprimimos en la consola de tu UI
+            this.addLog(`<span class="text-yellow-500 font-bold"> Warning: ${response.missingExifCount} images missing original EXIF date. Defaulting to OS file date.</span>`);
+            
+            // Mostramos el popup obligatorio informando al usuario (RF-010)
+            Swal.fire({
+              title: 'Atención con la Metadata',
+              html: `El dataset se subió correctamente con <b>${response.totalImages} imágenes</b>.<br><br><span style="color: #f59e0b;">⚠️ Advertencia:</span> <b>${response.missingExifCount} imágenes</b> no tenían la fecha de captura original de la cámara (EXIF).<br><br><i>El sistema ha utilizado la fecha de creación del archivo como valor por defecto.</i>`,
+              icon: 'warning',
+              background: '#1f2937',
+              color: '#f3f4f6',
+              confirmButtonColor: '#f59e0b',
+              confirmButtonText: 'Entendido'
+            });
+          } else {
+            // Si todas tenían fecha perfecta o no hay errores de EXIF
+            this.addLog('<span class="text-green-500">EXIF Validation: 100% Original capture dates preserved.</span>');
+            
+            Swal.fire({
+              title: '¡Subida Exitosa!',
+              text: `Las ${response.totalImages || 'imágenes'} y su metadata (incluyendo EXIF) fueron procesadas correctamente.`,
+              icon: 'success',
+              background: '#1f2937',
+              color: '#f3f4f6',
+              confirmButtonColor: '#10b981'
+            });
+          }
+          // ==========================================
+
           this.addLog('<span class="text-primary font-bold">SUCCESS: Dataset queued for processing.</span>');
           
           this.currentStep.set(4); // Completado
@@ -113,9 +153,18 @@ export class UploadPageComponent {
       },
       error: (err) => {
         console.error(err);
-        this.addLog(`<span class="text-red-500">ERROR: Upload failed - ${err.statusText}</span>`);
+        this.addLog(`<span class="text-red-500">ERROR: Upload failed - ${err.statusText || 'Unknown error'}</span>`);
         this.progress.set(0);
-        alert('Error al subir el archivo. Revisa la consola.');
+        
+        // Actualizamos el alert nativo por un SweetAlert más bonito
+        Swal.fire({
+          title: 'Error de subida',
+          text: 'Hubo un error al subir el archivo. Revisa la consola o asegúrate de que el formato sea correcto.',
+          icon: 'error',
+          background: '#1f2937',
+          color: '#f3f4f6',
+          confirmButtonColor: '#ef4444'
+        });
       }
     });
   }
