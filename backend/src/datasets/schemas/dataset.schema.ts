@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { User } from 'src/users/schemas/user.schema';
+import { User } from '../../users/schemas/user.schema';
 
 export type DatasetDocument = Dataset & Document;
 
@@ -32,6 +32,9 @@ export class Dataset {
   // Contador de imágenes
   @Prop({ default: 0 })
   image_count: number;
+
+  @Prop({ default: false })
+  has_annotations: boolean;
 
   // Campo fijo
   @Prop({ default: 'Hass Avocado', immutable: true })

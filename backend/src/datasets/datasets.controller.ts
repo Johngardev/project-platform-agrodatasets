@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -21,7 +22,7 @@ import type { Response } from 'express';
 import { DatasetsService } from './datasets.service';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateImageDto } from './dto/create-image.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -158,8 +159,41 @@ export class DatasetsController {
     } catch (error) {
       res.status(500).json({
         message: 'Error al generar el archivo ZIP',
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+
+  @Post(':id/annotations-csv')
+  @UseGuards(JwtAuthGuard) // Opcional: Agregar el RoleGuard para que solo Admin lo use
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/csv_temp', // Carpeta temporal para los CSV
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, `annotations-${uniqueSuffix}.csv`);
+        },
+      }),
+      fileFilter: (req, file, callback) => {
+        // Validación Nivel 1: Asegurar que sea CSV
+        if (!file.originalname.match(/\.(csv)$/)) {
+          return callback(
+            new BadRequestException('Solo se permiten archivos .csv'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  async uploadAnnotationsCsv(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file)
+      throw new BadRequestException('No se ha subido ningún archivo CSV');
+    return this.datasetsService.processAnnotationsCsv(id, file);
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -11,6 +10,8 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Post,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateDatasetDto } from './dto/create-dataset.dto';
 import { UpdateDatasetDto } from './dto/update-dataset.dto';
@@ -31,6 +32,8 @@ import { UpdateDatasetStatusDto } from './dto/update-dataset-status.dto';
 import archiver from 'archiver';
 import { Response } from 'express';
 import exifr from 'exifr';
+import { diskStorage } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 
 @Injectable()
 export class DatasetsService {
@@ -253,6 +256,7 @@ export class DatasetsService {
         uploaded_by: userId,
         status: DatasetStatus.PENDING,
         image_count: processedImages.length,
+        has_annotations: !!csvFile,
       });
       const savedDataset = await newDataset.save();
 
@@ -472,5 +476,156 @@ export class DatasetsService {
 
     // Cerramos y enviamos
     await archive.finalize();
+  }
+
+  async processAnnotationsCsv(datasetId: string, file: Express.Multer.File) {
+    // 1. Verificamos que el Dataset exista
+    if (!Types.ObjectId.isValid(datasetId))
+      throw new BadRequestException('ID de dataset inválido');
+    const dataset = await this.datasetModel.findById(datasetId);
+    if (!dataset) throw new NotFoundException('Dataset no encontrado');
+
+    const rawContent = fs.readFileSync(file.path, 'utf-8');
+    const lines = rawContent
+      .split(/\r?\n/)
+      .filter((line) => line.trim().length > 0);
+
+    if (lines.length < 2) {
+      throw new BadRequestException(
+        'El archivo CSV está vacío o le faltan datos.',
+      );
+    }
+
+    // 2. Validación ESTRICTA de Cabeceras
+    const headerLine = lines[0].replace(/['"]/g, '').trim().toLowerCase();
+    // Requisito RF-016: Estructura estrictamente definida
+    const requiredHeaders =
+      'filename,ripeness_degree,width,height,spectral_r,spectral_g,spectral_b,spectral_nir,annotations_json';
+
+    if (headerLine !== requiredHeaders) {
+      throw new BadRequestException(
+        `Estructura de CSV inválida. \nEsperado: ${requiredHeaders} \nRecibido: ${headerLine}`,
+      );
+    }
+
+    // 3. Variables para el Reporte de Errores
+    let updatedCount = 0;
+    const errors: Array<{ row: number; file: string; message: string }> = [];
+
+    // 4. Procesar fila por fila
+    for (let i = 1; i < lines.length; i++) {
+      let line = lines[i].trim();
+      line = line.replace(/^"+|"+$/g, ''); // Limpiar comillas externas
+
+      const parts = line.split(',');
+      if (parts.length < 9) {
+        errors.push({
+          row: i + 1,
+          file: 'N/A',
+          message: 'Faltan columnas en esta fila.',
+        });
+        continue;
+      }
+
+      // Limpieza extrema del nombre de archivo
+      const rawFileName = parts[0];
+      const fileName = rawFileName.replace(/[^a-zA-Z0-9.\-_]/g, '');
+
+      // Parseo y validación de tipos
+      const ripeness_degree = parts[1].trim();
+      const width = Number(parts[2].trim());
+      const height = Number(parts[3].trim());
+      const r = Number(parts[4].trim());
+      const g = Number(parts[5].trim());
+      const b = Number(parts[6].trim());
+      const nir = Number(parts[7].trim());
+      const jsonPart = parts.slice(8).join(',');
+
+      // Validar que los números no sean NaN
+      if (isNaN(width) || isNaN(r)) {
+        errors.push({
+          row: i + 1,
+          file: fileName,
+          message: 'Valores numéricos inválidos.',
+        });
+        continue;
+      }
+
+      // Validar JSON
+      let parsedAnnotations = [];
+      if (jsonPart && jsonPart.trim() !== '') {
+        try {
+          const match = jsonPart.match(/\[.*\]/);
+          if (match) {
+            const cleanJson = match[0]
+              .replace(/\\*"+/g, '"')
+              .replace(/([a-zA-Z])"([a-zA-Z])/g, '$1 $2');
+            parsedAnnotations = JSON.parse(cleanJson);
+          }
+        } catch (e) {
+          errors.push({
+            row: i + 1,
+            file: fileName,
+            message: 'El formato JSON de las anotaciones es inválido.',
+          });
+          continue;
+        }
+      }
+
+      // 5. Buscar y Actualizar la Imagen en la Base de Datos
+      const imageToUpdate = await this.imageModel.findOne({
+        dataset_id: new Types.ObjectId(datasetId) as any,
+        file_name: fileName,
+      });
+
+      if (!imageToUpdate) {
+        errors.push({
+          row: i + 1,
+          file: fileName,
+          message:
+            'La imagen no pertenece a este dataset o no existe en la BD.',
+        });
+        continue;
+      }
+
+      // Si todo es correcto, actualizamos la metadata conservando el EXIF (RF-010)
+      const currentMetadata = imageToUpdate.metadata || ({} as any);
+
+      await this.imageModel.updateOne(
+        { _id: imageToUpdate._id },
+        {
+          $set: {
+            metadata: {
+              ...currentMetadata, // Conservamos date_capture y has_exif
+              width,
+              height,
+              ripeness_degree,
+              spectral_values: { r, g, b, nir },
+              annotations: parsedAnnotations,
+            },
+          },
+        },
+      );
+      updatedCount++;
+    }
+
+    if (updatedCount > 0) {
+      await this.datasetModel.updateOne(
+        { _id: new Types.ObjectId(datasetId) },
+        { $set: { has_annotations: true } },
+      );
+    }
+
+    // 6. Eliminar el archivo CSV temporal para no saturar el servidor
+    fs.unlinkSync(file.path);
+
+    // 7. Devolver el Reporte
+    return {
+      message: 'Procesamiento de anotaciones finalizado',
+      totalRowsProcessed: lines.length - 1,
+      updatedImages: updatedCount,
+      errorsFound: errors.length,
+      errorDetails: errors, // Detalle para el administrador
+    };
   }
 }
