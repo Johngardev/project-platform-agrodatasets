@@ -118,6 +118,16 @@
                 <span class="text-[10px] text-gray-500 uppercase block">Dimensiones</span>
                 <span class="text-xs text-white font-mono">{{ image().metadata?.width || 0 }} x {{ image().metadata?.height || 0 }}</span>
               </div>
+              <div>
+                <span class="text-[10px] text-gray-500 uppercase block">Fecha de Captura</span>
+                <span class="text-xs text-white font-mono flex items-center gap-1">
+                  {{ image().metadata?.capture_date | date:'dd MMM yyyy, HH:mm' }}
+                  
+                  @if (!image().metadata?.has_original_exif) {
+                    <span class="material-symbols-outlined text-[8px] text-yellow-500" title="Fecha inferida (No EXIF)">Date not found</span>
+                  }
+                </span>
+              </div>
             </div>
           </div>
 

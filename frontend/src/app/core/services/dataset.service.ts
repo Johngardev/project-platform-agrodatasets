@@ -19,6 +19,7 @@ export interface Dataset {
   uploaded_by: User; // El populate del backend nos da el objeto completo
   createdAt: string;
   updatedAt: string;
+  has_annotations: boolean;
   last_image_url?: string;
 }
 
@@ -107,5 +108,14 @@ export class DatasetService {
     return this._http.get(`${this.apiUrl}/${datasetId}/download`, {
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Agregar CSV a un dataset existente
+   */
+  uploadAnnotationsCsv(datasetId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this._http.post(`${this.apiUrl}/${datasetId}/annotations-csv`, formData);
   }
 }

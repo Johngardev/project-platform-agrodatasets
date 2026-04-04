@@ -74,6 +74,13 @@
                   title="Download ZIP">
                   <span class="material-symbols-outlined text-lg">download</span>
                 </button>
+                @if (!dataset.has_annotations) {
+                  <button (click)="triggerCsvUpload(dataset._id)"
+                    class="p-2 rounded-lg bg-secondary-dark text-text-muted hover:text-blue-400 hover:border-blue-400/50 border border-transparent transition-all"
+                    title="Upload Annotations (CSV)">
+                    <span class="material-symbols-outlined text-lg">upload_file</span>
+                  </button>
+                }
                 <div class="w-px h-8 bg-border-dark mx-1"></div>
                 <button (click)="approveDataset(dataset._id)"
                   class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
@@ -102,6 +109,8 @@
       </table>
     </div>
   </div>
+
+  <input type="file" #csvFileInput accept=".csv" class="hidden" (change)="onCsvFileSelected($event)">
 
   <div class="flex flex-col gap-6 mt-4">
     <div class="flex items-center justify-between border-b border-border-dark pb-4">

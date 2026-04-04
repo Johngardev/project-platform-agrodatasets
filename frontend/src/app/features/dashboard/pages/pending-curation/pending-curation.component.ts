@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { Dataset, DatasetService } from '../../../../core/services/dataset.service';
 import Swal from 'sweetalert2';
 import { RouterLink } from '@angular/router';
@@ -19,6 +19,7 @@ export interface DatasetDocument {
   rejection_reason?: string;
   image_count: number;
   crop_type: string;
+  has_annotations: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -32,6 +33,9 @@ export interface DatasetDocument {
 })
 export class PendingCurationComponent {
   private _datasetService = inject(DatasetService);
+
+  @ViewChild('csvFileInput') csvFileInput!: ElementRef<HTMLInputElement>;
+  private selectedDatasetIdForCsv: string | null = null;
 
   isDownloading = false;
 
@@ -49,7 +53,68 @@ export class PendingCurationComponent {
       next: (data) => this.allDatasets.set(data),
       error: (err) => console.error('Error al cargar datasets:', err)
     });
-  }  
+  }
+  
+  triggerCsvUpload(datasetId: string) {
+    this.selectedDatasetIdForCsv = datasetId;
+    // Esto simula un clic en el input de archivo oculto, abriendo el explorador de Windows/Mac
+    this.csvFileInput.nativeElement.click(); 
+  }
+
+  onCsvFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file || !this.selectedDatasetIdForCsv) return;
+
+    // Limpiamos el valor del input por si el usuario quiere subir el mismo archivo después de corregir un error
+    event.target.value = '';
+
+    Swal.fire({
+      title: 'Validando CSV...',
+      text: 'Comprobando estructura y actualizando base de datos.',
+      allowOutsideClick: false,
+      background: '#1f2937', color: '#f3f4f6',
+      didOpen: () => Swal.showLoading()
+    });
+
+    this._datasetService.uploadAnnotationsCsv(this.selectedDatasetIdForCsv, file).subscribe({
+      next: (response: any) => {
+
+        this.allDatasets.update(datasets => 
+          datasets.map(d => d._id === this.selectedDatasetIdForCsv ? { ...d, has_annotations: true } : d)
+        );
+        // Generar un reporte claro en HTML
+        let htmlReport = `
+          <div style="text-align: left; font-size: 14px;">
+            <p>Imágenes actualizadas: <b>${response.updatedImages}</b></p>
+            <p>Errores encontrados: <b style="color: #ef4444;">${response.errorsFound}</b></p>
+        `;
+
+        if (response.errorsFound > 0) {
+          htmlReport += `<hr class="my-2 border-gray-600"><ul style="color: #ef4444; max-height: 150px; overflow-y: auto; font-size: 13px;">`;
+          response.errorDetails.forEach((err: any) => {
+            htmlReport += `<li class="mb-1"><b>Fila ${err.row} (${err.file}):</b> ${err.message}</li>`;
+          });
+          htmlReport += `</ul>`;
+        }
+        htmlReport += `</div>`;
+
+        Swal.fire({
+          title: response.errorsFound > 0 ? 'Completado con Advertencias' : '¡Anotaciones Cargadas!',
+          html: htmlReport,
+          icon: response.errorsFound > 0 ? 'warning' : 'success',
+          background: '#1f2937', color: '#f3f4f6', confirmButtonColor: '#10b981'
+        });
+      },
+      error: (err: any) => {
+        Swal.fire({
+          title: 'Error de Estructura',
+          text: err.error?.message || 'El CSV no cumple con el formato requerido o está corrupto.',
+          icon: 'error',
+          background: '#1f2937', color: '#f3f4f6', confirmButtonColor: '#ef4444'
+        });
+      }
+    });
+  }
   
   approveDataset(id: string) {
     Swal.fire({
