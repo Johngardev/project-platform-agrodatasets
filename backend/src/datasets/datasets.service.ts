@@ -588,24 +588,30 @@ export class DatasetsService {
         continue;
       }
 
-      // Si todo es correcto, actualizamos la metadata conservando el EXIF (RF-010)
-      const currentMetadata = imageToUpdate.metadata || ({} as any);
+      // Si la metadata no existe por alguna razón, la inicializamos
+      if (!imageToUpdate.metadata) {
+        imageToUpdate.metadata = {} as any;
+      }
 
-      await this.imageModel.updateOne(
-        { _id: imageToUpdate._id },
-        {
-          $set: {
-            metadata: {
-              ...currentMetadata, // Conservamos date_capture y has_exif
-              width,
-              height,
-              ripeness_degree,
-              spectral_values: { r, g, b, nir },
-              annotations: parsedAnnotations,
-            },
-          },
-        },
-      );
+      imageToUpdate.metadata.width = width;
+      imageToUpdate.metadata.height = height;
+      imageToUpdate.metadata.ripeness_degree = ripeness_degree;
+
+      imageToUpdate.metadata.spectral_values = {
+        r: r,
+        g: g,
+        b: b,
+        nir: nir,
+      };
+
+      imageToUpdate.metadata.annotations = parsedAnnotations;
+
+      // TRUCO CLAVE: Le decimos explícitamente a Mongoose que
+      // revisé el objeto anidado para que lo guarde completo.
+      imageToUpdate.markModified('metadata');
+
+      // Guardamos usando el motor de seguimiento interno de Mongoose
+      await imageToUpdate.save();
       updatedCount++;
     }
 
