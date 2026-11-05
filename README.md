@@ -156,6 +156,6 @@ This README describes the functionality implemented in the repository. Deploymen
 
 ## Author
 
-**John Gardner** — Systems Engineering undergraduate thesis project.
+**John Garcia** — Systems Engineering undergraduate thesis project.
 
 For questions, bug reports, or suggestions, please open an issue in this repository.
